@@ -122,6 +122,7 @@ COMMENTS:
           those sequences without sequencing errors. Thus, a good rule of thumb would be considering our effective OTU clustering 
           distance to be actually 'OTUdist - 2*uncert', where OTUdist is the distance used for clustering the observed sequences.
 
-        - Distributed under the GNU General Public License.
+
+Distributed under the GNU General Public License.
 
 
