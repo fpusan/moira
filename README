@@ -112,8 +112,9 @@ COMMENTS:
 
         - Approximating the sum of bernoulli random variables to a poisson distribution is quicker than calculating 
           their exact sum (Poisson binomial distribution). That said, the Poisson binomial filtering algorithm is also implemented
-          in C and even the python implementation is quick enough for processing large datasets. The bootstrap method (qmode=bootstrap)
-          is a numerical algorithm for performing the sum of bernoulli random variables. It is only included for testing purposes.
+          in C and even the python implementation is quick enough for processing large datasets. The bootstrap method
+          (errorcalc=bootstrap) is a numerical algorithm for performing the sum of bernoulli random variables.
+          It is only included for testing purposes.
 
         - Quality-filtering will discard the contigs expected to have more than 'alpha' chances of diverging from the original 
           sequence more than the value specified by the 'uncert' param. That means that, during distance calculation between two
