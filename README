@@ -84,7 +84,7 @@ PARAMETERS:
                         disallow: will discard sequences with ambiguities.
                         ignore: will ignore ambiguities.
 
-                --uncert (default 0.005): Maximum divergence of the observed sequence from the original one due to sequencing errors.
+                --uncert (default 0.01): Maximum divergence of the observed sequence from the original one due to sequencing errors.
 
                 --maxerrors (no default value): Maximum errors allowed in the sequence.
                         Will be override --uncert if specified as a parameter.
