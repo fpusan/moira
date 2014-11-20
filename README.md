@@ -3,6 +3,7 @@ moira
 
 Quality-filter raw sequence reads using the Poisson binomial filtering algorithm.
 
+
 REQUIREMENTS:
 
 - Expects quality scores in Sanger/Illumina1.8+ format.
@@ -16,6 +17,7 @@ REQUIREMENTS:
 - OPTIONAL: Requires the nw_align library, which includes the C implementation of the Needleman-Wunsch alignment algorithm.
   The nw_align library is writen in Cython. Use Cython to translate the code to C, and then compile it as a shared library.
   If not present, the script will automatically switch to the pure python implementation.
+
 
 
 USAGE:
@@ -32,6 +34,8 @@ USAGE:
 
         moira.py --forward_fasta=<FILE> --forward_qual=<FILE>
 
+
+
 OUTPUT:
 
   - If quality control is beeing performed, files will be generated with both the sequences that passed the QC and the ones that didn't. A small report will be included on the headers of the contigs that didn't pass the QC.
@@ -47,6 +51,7 @@ OUTPUT:
         <INPUT_NAME>.contigs.qual
 
   - If identical sequences are being collapsed, mothur-formatted name files will also be generated.
+
 
 
 PARAMETERS:
@@ -96,6 +101,8 @@ PARAMETERS:
      - mothur: output for collapsed sequences will be in mothur\'s fasta + names format.
      - USEARCH: output for collapsed sequences will be in a single fasta file, with abundance information stored in the sequence header.
     - --processors (default 1): number of processes to use.
+
+
 
 COMMENTS:
 
