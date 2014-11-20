@@ -53,9 +53,9 @@ PARAMETERS:
 
   - Needleman-Wunsch aligner parameters:
 
-      --match (default 1): match score
-      --gap (default -2): gap penalty
-      --mismatch (default -1): mismatch penalty
+  --match (default 1): match score
+  --gap (default -2): gap penalty
+  --mismatch (default -1): mismatch penalty
 
   - Contig constructor parameters:
  
