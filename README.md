@@ -7,7 +7,7 @@ REQUIREMENTS:
 
 - Expects quality scores in Sanger/Illumina1.8+ format.
 - Expects that input sequences (single or paired) and qualities are in the same order.
-- Expects that sequences and qualities are stored only in one line (i.e. >header\\nsequence\\n>header2\\nsequence2)
+- Expects that sequences and qualities are stored only in one line (i.e. >header\\nsequence\\n>header2\\nsequence2).
 - OPTIONAL: Requires numpy if --qmode is set to "bootstrap".
 - OPTIONAL: Requires the bernoulli library, which includes the C implementation of the Poisson binomial filtering algorithm.
   To obtain it, the file bernoullimodule.c must be compiled as a shared library and placed in the same folder as 
@@ -58,26 +58,23 @@ PARAMETERS:
 
   - Contig constructor parameters:
  
-      --insert (default 20): quality above which a base will be used for filling a complementary gap or ambiguity.
-      --deltaq (default 6): minimum quality difference allowed between two mismatched bases for not including an N in the consensus sequence.
-      --consensus_qscore (default 'best')
-        best: use the best quality on each position of the alignment as the consensus quality score (Unless an ambiguity is introduced in that position by the contig constructor. In that case, quality score will be always 2).
-        sum: in matching bases, consensus quality score will be the sum of the qualities of both reads in that position of the alignment.
+   - --insert (default 20): quality above which a base will be used for filling a complementary gap or ambiguity.
+   - --deltaq (default 6): minimum quality difference allowed between two mismatched bases for not including an N in the consensus sequence.
+   - --consensus_qscore (default 'best')
+   - --best: use the best quality on each position of the alignment as the consensus quality score (Unless an ambiguity is introduced in that position by the contig constructor. In that case, quality score will be always 2).
+   - - --sum: in matching bases, consensus quality score will be the sum of the qualities of both reads in that position of the alignment.
 
   - Quality-filtering parameters:
+    - --collapse (default True): if True, identical sequences will be collapsed before quality control, and the one with the best quality will be used as a representative of the whole group.
+    - --error_calc (default 'poisson_binomial'): algorithm used for error calculation.
+      - poisson_binomial: calculate the Poisson binomial distribution (sum of bernoulli random variables).
+      - poisson: approximating sum of bernoulli random variables to a poisson distribution.
+      - bootstrap: numerical generation of an error distribution (deprecated).
 
-                --collapse (default True): if True, identical sequences will be collapsed before quality control, and the one with
-                        the best quality will be used as a representative of the whole group.
-
-                --error_calc (default 'poisson_binomial'): algorithm used for error calculation.
-                        poisson_binomial: calculate the Poisson binomial distribution (sum of bernoulli random variables).
-                        poisson: approximating sum of bernoulli random variables to a poisson distribution.
-                        bootstrap: numerical generation of an error distribution (deprecated).
-
-                --ambigs (default treat_as_error): handling of ambiguous positions during quality checking.
-                        treat_as_error: will consider than ambiguities always result in a misread base.
-                        disallow: will discard sequences with ambiguities.
-                        ignore: will ignore ambiguities.
+    - --ambigs (default treat_as_error): handling of ambiguous positions during quality checking.
+      - treat_as_error: will consider than ambiguities always result in a misread base.
+      - disallow: will discard sequences with ambiguities.
+      - ignore: will ignore ambiguities.
 
                 --uncert (default 0.01): Maximum divergence of the observed sequence from the original one due to sequencing errors.
 
