@@ -101,7 +101,7 @@ COMMENTS:
 
    - Alignment parameters are set to replicate mothur's default implementation of the Needleman-Wunsch algorithm.
 
-   - The 'insert' and 'deltaq' parameters from mothur make.contig are also reproduced. They are set at their default values. More details can be found at www.mothur.org/wiki/Make.contigs
+   - The 'insert' and 'deltaq' parameters from mothur make.contig are also reproduced. They are set at their default values. More details can be found at www.mothur.org/wiki/Make.contigs .
 
    - Approximating the sum of bernoulli random variables to a poisson distribution is quicker than calculating their exact sum (Poisson binomial distribution). That said, the Poisson binomial filtering algorithm is also implemented in C and even the python implementation is quick enough for processing large datasets. The bootstrap method (--error_calc bootstrap) is a numerical algorithm for performing the sum of bernoulli random variables. It is only included for testing purposes.
 
