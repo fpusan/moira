@@ -76,28 +76,26 @@ PARAMETERS:
       - disallow: will discard sequences with ambiguities.
       - ignore: will ignore ambiguities.
 
-                --uncert (default 0.01): Maximum divergence of the observed sequence from the original one due to sequencing errors.
+    - --uncert (default 0.01): Maximum divergence of the observed sequence from the original one due to sequencing errors.
 
-                --maxerrors (no default value): Maximum errors allowed in the sequence.
-                        Will be override --uncert if specified as a parameter.
+    - --maxerrors (no default value): Maximum errors allowed in the sequence. Will override --uncert if specified as a parameter.
 
-                --alpha (default 0.005): Probability of underestimating the actual errors of a sequence.
+    - --alpha (default 0.005): Probability of underestimating the actual errors of a sequence.
 
-                --bootstrap (default 100): Number of replicates per position used for error calculation by the bootstrap method.
+    - --bootstrap (default 100): Number of replicates per position used for error calculation by the bootstrap method.
         
-        - Other:
+  - Other:
 
-                --paired: input files are paired end files and will be assembled into contigs.
-                --only_contigs: assemble contigs, don\'t do quality control.
-                --relabel (default False): if a prefix string is introduced, sequential labels will be generated for the sequences,
-                                           with the format <prefix>N, where N=1,2,3 etc.
-                --output_format (default fasta):
-                        fasta: output files in fasta + qual format.
-                        fastq: output files in fastq format.
-                --pipeline (default mothur):
-                        mothur: output for collapsed sequences will be in mothur\'s fasta + names format.
-                        USEARCH: output for collapsed sequences will be in a single fasta file, with abundance information stored in the sequence header.
-                --processors (default 1): number of processes to use.
+    - --paired: input files are paired end files and will be assembled into contigs.
+    - --only_contigs: assemble contigs, don\'t do quality control.
+    - --relabel (default False): if a prefix string is introduced, sequential labels will be generated for the sequences,with the format <prefix>N, where N=1,2,3...
+    - --output_format (default fasta):
+      - fasta: output files in fasta + qual format.
+      - fastq: output files in fastq format.
+    - --pipeline (default mothur):
+     - mothur: output for collapsed sequences will be in mothur\'s fasta + names format.
+     - USEARCH: output for collapsed sequences will be in a single fasta file, with abundance information stored in the sequence header.
+    - --processors (default 1): number of processes to use.
 
 COMMENTS:
 
