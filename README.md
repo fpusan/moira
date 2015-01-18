@@ -15,8 +15,24 @@ REQUIREMENTS:
   this script (or into the python library folder). If not available, the script will automaticaly switch to the pure
   python implementation.
 - OPTIONAL: Requires the nw_align library, which includes the C implementation of the Needleman-Wunsch alignment algorithm.
-  The nw_align library is writen in Cython. Use Cython to translate the code to C, and then compile it as a shared library.
-  If not present, the script will automatically switch to the pure python implementation.
+  The nw_align library is writen in Cython. Use Cython to translate the code to C, and then compile it as a shared library. If not present, the script will automatically switch to the pure python implementation.
+
+
+
+INSTALATION INSTRUCTIONS:
+
+- moira.py contains the python implementation of the Poisson binomial algorithm. It will perform as a standalone script as described here.
+
+- bernoullimodule.c contains the C implementation of the Poisson binomial filtering algorithm. It's written to work as a python extension module, and will speed up moira.py if compiled as a shared library. An example command line for compiling it would be:
+
+        gcc -fpic -shared -I /usr/include/python2.6/ -o bernoulli.so bernoullimodule.c
+
+- nw_align.pyx contains a cython implementation of the Needleman-Wunsch aligner, in order to speed up contig construction from paired reads. An example command line for compiling it would be:
+
+        cython nw_align.pyx
+        gcc -fpic -shared -I /usr/include/python2.6/ -o nw_align.so nw_align.c
+
+- Please note that moira.py still contains the python implementation of both the Poisson binomial and the Needleman-Wunsch algorithms. Compiling bernoullimodule.c and nw_align.pyx in the same folder will make it faster, but it's not needed for it to work.
 
 
 
