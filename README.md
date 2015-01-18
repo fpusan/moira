@@ -112,7 +112,7 @@ COMMENTS:
 
    - Approximating the sum of bernoulli random variables to a poisson distribution is quicker than calculating their exact sum (Poisson binomial distribution). That said, the Poisson binomial filtering algorithm is also implemented in C and even the python implementation is quick enough for processing large datasets. The bootstrap method (--error_calc bootstrap) is a numerical algorithm for performing the sum of bernoulli random variables. It is only included for testing purposes.
 
-   - Quality-filtering will discard the contigs expected to have more than 'alpha' chances of diverging from the original sequence more than the value specified by the 'uncert' param. That means that, during distance calculation between two given sequences, the observed distance will be at most 'dist + 2*uncert', where 'dist' is the original distance between those sequences without sequencing errors. Thus, a good rule of thumb would be considering the effective OTU clustering distance to be actually 'OTUdist - 2*uncert', where OTUdist is the distance used for clustering the observed sequences.
+   - Quality-filtering will discard the contigs expected to have more than 'alpha' chances of diverging from the original sequence more than the value specified by the 'uncert' param. That means that, during distance calculation between two given sequences, the observed distance will be at most 'dist + 2\*uncert', where 'dist' is the original distance between those sequences without sequencing errors. Thus, a good rule of thumb would be considering the effective OTU clustering distance to be actually 'OTUdist - 2\*uncert', where OTUdist is the distance used for clustering the observed sequences.
 
 
 Distributed under the GNU General Public License.
