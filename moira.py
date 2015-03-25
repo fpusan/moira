@@ -37,7 +37,7 @@ USAGE:
 
 OUTPUT:
 
-    - If quality control is beeing performed, files will be generated with both the sequences that passed the QC and the ones 
+    - If quality control is being performed, files will be generated with both the sequences that passed the QC and the ones 
       that didn't. A small report will be included on the headers of the contigs that didn't pass the QC.
 
         <INPUT_NAME>.qc.good.fasta
