@@ -141,8 +141,8 @@ Distributed under the GNU General Public License.
 
 __author__ = 'Fernando Puente-Sánchez'
 __email__ = 'fpusan@gmail.com'
-__version__ = '0.9.76'
-__date__ = '20-Nov-2014'
+__version__ = '0.9.77'
+__date__ = '25-Mar-2015'
 __license__ = 'GPLv3'
 __copyright__ = 'Copyright 2013-2014 Fernando Puente-Sánchez'
 
@@ -428,9 +428,10 @@ def main():
                 print
         ###############
 
-    except:
+    except Exception, e:
         #So we did screw up...
-        raise
+        print e
+        print
         ok = False
 
     #Tidy your room after you play (even if you kinda broke your toys).
