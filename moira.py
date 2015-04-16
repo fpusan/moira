@@ -376,7 +376,7 @@ def main():
                             uniques[contig]['names_info'].append(header.lstrip('>'))                         
                 else:
                     #Directly check if the sequence has passed the filter and write it.
-                    filtering_results = write_results(header, contig, contig_quals, expected_errors, None, args,
+                    filtering_results = write_results(processed_seqs, header, contig, contig_quals, expected_errors, None, args,
                                                       contig_output, qual_output, names_output,
                                                       bad_contig_output, bad_qual_output, bad_names_output)
                     discarded_errors += filtering_results[0]
@@ -868,7 +868,7 @@ def parse_fasta_and_qual(forward_fasta_data, forward_qual_data, reverse_fasta_da
         if reverse_fasta_data and reverse_qual_data and len(set([forward_fasta_header, reverse_fasta_header, forward_qual_header, reverse_qual_header])) != 1:
             raise NameMismatchError(forward_fasta_header, forward_qual_header, reverse_fasta_header, reverse_qual_header)
         if not reverse_fasta_data and not reverse_qual_data and len(set([forward_fasta_header, forward_qual_header])) != 1:
-            raise NameMismatchError(forward_fasta_header, reverse_fasta_header)
+            raise NameMismatchError(forward_fasta_header, forward_qual_header)
         if not forward_sequence:
             raise EmptySeqError(forward_fasta_header, forward_fasta_data.name)
         if not forward_quals:
