@@ -141,7 +141,7 @@ Distributed under the GNU General Public License.
 
 __author__ = 'Fernando Puente-Sánchez'
 __email__ = 'fpusan@gmail.com'
-__version__ = '0.9.77'
+__version__ = '0.9.78'
 __date__ = '25-Mar-2015'
 __license__ = 'GPLv3'
 __copyright__ = 'Copyright 2013-2014 Fernando Puente-Sánchez'
@@ -684,7 +684,11 @@ def write_results(index, header, sequence, quals, expected_errors, names_info, a
     if args.relabel:
         header = '>%s%d'%(args.relabel, index)
     if args.pipeline == 'USEARCH':
-        header = header + ';ee=%.2f;size=%d;'%(expected_errors, len(names_info))
+        if names_info:
+            size = len(names_info)
+        else:
+            size = 1
+        header = header + ';ee=%.2f;size=%d;'%(expected_errors, size)
     if args.only_contig:
         contig_output.write('%s\n%s\n'%(header, sequence))
         qual_output.write('%s\n%s\n'%(header, ' '.join(map(str, quals))))
@@ -856,13 +860,13 @@ def parse_fasta_and_qual(forward_fasta_data, forward_qual_data, reverse_fasta_da
             if not forward_fasta_header and not forward_qual_header:
                 break
 
-        forward_fasta_header = forward_fasta_header.strip().split(' ')[0]
+        forward_fasta_header = forward_fasta_header.strip().replace('\t', ' ').split(' ')[0]
         forward_sequence = forward_fasta_data.readline().strip()
-        forward_qual_header = forward_qual_header.strip().split('\t')[0].split(' ')[0]
+        forward_qual_header = forward_qual_header.strip().split('\t')[0].replace('\t', ' ').split(' ')[0]
         forward_quals = map(int, forward_qual_data.readline().strip().replace('\t', ' ').split(' '))
-        if reverse_fasta_data: reverse_fasta_header = reverse_fasta_header.strip().split(' ')[0]
+        if reverse_fasta_data: reverse_fasta_header = reverse_fasta_header.replace('\t', ' ').strip().split(' ')[0]
         if reverse_fasta_data: reverse_sequence = reverse_fasta_data.readline().strip()
-        if reverse_qual_data: reverse_qual_header = reverse_qual_header.strip().split('\t')[0].split(' ')[0]
+        if reverse_qual_data: reverse_qual_header = reverse_qual_header.strip().replace('\t', ' ').split('\t')[0].split(' ')[0]
         if reverse_qual_data: reverse_quals = map(int, reverse_qual_data.readline().strip().replace('\t', ' ').split(' '))
    
         if reverse_fasta_data and reverse_qual_data and len(set([forward_fasta_header, reverse_fasta_header, forward_qual_header, reverse_qual_header])) != 1:
