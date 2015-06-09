@@ -6,7 +6,6 @@ Quality-filter raw sequence reads using the Poisson binomial filtering algorithm
 
 REQUIREMENTS:
 
-- Expects quality scores in Sanger/Illumina1.8+ format.
 - Expects that input sequences (single or paired) and qualities are in the same order.
 - Expects that sequences and qualities are stored only in one line (i.e. >header\\nsequence\\n>header2\\nsequence2).
 - OPTIONAL: Requires numpy if --qmode is set to "bootstrap".
@@ -23,14 +22,16 @@ INSTALATION INSTRUCTIONS:
 
 - moira.py contains the python implementation of the Poisson binomial algorithm. It will perform as a standalone script as described here.
 
+- Running python setup.py install 
+
 - bernoullimodule.c contains the C implementation of the Poisson binomial filtering algorithm. It's written to work as a python extension module, and will speed up moira.py if compiled as a shared library. An example command line for compiling it would be:
 
-        gcc -fpic -shared -I /usr/include/python2.6/ -o bernoulli.so bernoullimodule.c
+        gcc -fpic -shared -I /usr/include/python2.7/ -o bernoulli.so bernoullimodule.c
 
 - nw_align.pyx contains a cython implementation of the Needleman-Wunsch aligner, in order to speed up contig construction from paired reads. An example command line for compiling it would be:
 
         cython nw_align.pyx
-        gcc -fpic -shared -I /usr/include/python2.6/ -o nw_align.so nw_align.c
+        gcc -fpic -shared -I /usr/include/python2.7/ -o nw_align.so nw_align.c
 
 - Please note that moira.py still contains the python implementation of both the Poisson binomial and the Needleman-Wunsch algorithms. Compiling bernoullimodule.c and nw_align.pyx in the same folder will make it faster, but it's not needed for it to work.
 
@@ -38,13 +39,13 @@ INSTALATION INSTRUCTIONS:
 
 USAGE:
 
-  - Make contigs from paired reads without quality-filtering:
+  - Make contigs from paired reads (fasta + qual) without quality-filtering:
 
         moira.py --forward_fasta=<FILE> --forward_qual=<FILE> --reverse_fasta=<FILE> --reverse_qual=<FILE> --paired --only_contig
 
-  - Make contigs from paired reads and perform quality-filtering:
+  - Make contigs from paired reads (fastq) and perform quality-filtering, output results in fastq format:
 
-        moira.py --forward_fasta=<FILE> --forward_qual=<FILE> --reverse_fasta=<FILE> --reverse_qual=<FILE> --paired
+        moira.py --forward_fastq=<FILE> --reverse_fastq=<FILE> --paired --output_format fastq
 
   - Quality-filter already assembled contigs or single reads:
 
@@ -66,8 +67,8 @@ OUTPUT:
         <INPUT_NAME>.contigs.fasta
         <INPUT_NAME>.contigs.qual
 
-  - If identical sequences are being collapsed, mothur-formatted name files will also be generated.
-
+  - If identical sequences are being collapsed, mothur-formatted name files (or USEARCH formatted sequence headers) will also be generated.
+  - moira.py will replace ':' for '_' in sequence names for compatibility with the mothur pipeline.
 
 
 PARAMETERS:
@@ -97,6 +98,8 @@ PARAMETERS:
       - disallow: will discard sequences with ambiguities.
       - ignore: will ignore ambiguities.
 
+    - --round: Round down the predicted errors to the nearest integer prior to filtering.
+
     - --uncert (default 0.01): Maximum divergence of the observed sequence from the original one due to sequencing errors.
 
     - --maxerrors (no default value): Maximum errors allowed in the sequence. Will override --uncert if specified as a parameter.
@@ -116,6 +119,8 @@ PARAMETERS:
     - --pipeline (default mothur):
      - mothur: output for collapsed sequences will be in mothur\'s fasta + names format.
      - USEARCH: output for collapsed sequences will be in a single fasta file, with abundance information stored in the sequence header.
+    - --fastq_offset (default 33): ASCII/qscore encoding.
+
     - --processors (default 1): number of processes to use.
 
 
@@ -126,7 +131,7 @@ COMMENTS:
 
    - The 'insert' and 'deltaq' parameters from mothur make.contig are also reproduced. They are set at their default values. More details can be found at www.mothur.org/wiki/Make.contigs.
 
-   - Approximating the sum of bernoulli random variables to a poisson distribution is quicker than calculating their exact sum (Poisson binomial distribution). That said, the Poisson binomial filtering algorithm is also implemented in C and even the python implementation is quick enough for processing large datasets. The bootstrap method (--error_calc bootstrap) is a numerical algorithm for performing the sum of bernoulli random variables. It is only included for testing purposes.
+    - Approximating the sum of bernoulli random variables to a poisson distribution is quicker than calculating their exact sum (Poisson binomial distribution). It proves specially useful for long reads (>500 nt). That said, the Poisson binomial filtering algorithm is also implemented in C and even the python implementation is quick enough or processing large datasets. The bootstrap method (--error_calc bootstrap) is a numerical algorithm for performing the sum of bernoulli random variables. It is only included for testing purposes.
 
    - Quality-filtering will discard the contigs expected to have more than 'alpha' chances of diverging from the original sequence more than the value specified by the 'uncert' param. That means that, during distance calculation between two given sequences, the observed distance will be at most 'dist + 2\*uncert', where 'dist' is the original distance between those sequences without sequencing errors. Thus, a good rule of thumb would be considering the effective OTU clustering distance to be actually 'OTUdist - 2\*uncert', where OTUdist is the distance used for clustering the observed sequences.
 

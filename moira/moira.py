@@ -8,28 +8,24 @@ Quality-filter raw sequence reads using the Poisson binomial filtering algorithm
 
 REQUIREMENTS:
 
-- Expects quality scores in Sanger/Illumina1.8+ format.
 - Expects that input sequences (single or paired) and qualities are in the same order.
 - Expects that sequences and qualities are stored only in one line (i.e. >header\\nsequence\\n>header2\\nsequence2).
-- OPTIONAL: Requires numpy if --qmode is set to "bootstrap".
 - OPTIONAL: Requires the bernoulli library, which includes the C implementation of the Poisson binomial filtering algorithm.
-  To obtain it, the file bernoullimodule.c must be compiled as a shared library and placed in the same folder as 
-  this script (or into the python library folder). If not available, the script will automaticaly switch to the pure
+  If not available, the script will automaticaly switch to the pure
   python implementation.
-- OPTIONAL: Requires the nw_align library, which includes the C implementation of the Needleman-Wunsch alignment algorithm.
-  The nw_align library is writen in Cython. Use Cython to translate the code to C, and then compile it as a shared library.
+- OPTIONAL: Requires the nw_align library, which includes the cython implementation of the Needleman-Wunsch alignment algorithm.
   If not present, the script will automatically switch to the pure python implementation.
 
 
 USAGE:
 
-    - Make contigs from paired reads without quality-filtering:
+    - Make contigs from paired reads (fastq+qual) without quality-filtering:
 
         moira.py --forward_fasta=<FILE> --forward_qual=<FILE> --reverse_fasta=<FILE> --reverse_qual=<FILE> --paired --only_contig
 
-    - Make contigs from paired reads and perform quality-filtering:
+    - Make contigs from paired reads (fastq) and perform quality-filtering, output results in fastq format:
 
-        moira.py --forward_fasta=<FILE> --forward_qual=<FILE> --reverse_fasta=<FILE> --reverse_qual=<FILE> --paired
+        moira.py --forward_fastq=<FILE> --reverse_fastq=<FILE> --paired --output_format fastq
 
     - Quality-filter already assembled contigs or single reads:
 
@@ -50,7 +46,8 @@ OUTPUT:
         <INPUT_NAME>.contigs.fasta
         <INPUT_NAME>.contigs.qual
 
-    - If identical sequences are being collapsed, mothur-formatted name files will also be generated.
+    - If identical sequences are being collapsed, mothur-formatted name files (or UPARSE formatted sequence headers) will also be generated.
+    - moira.py will replace ':' for '_' in sequence names for compatibility with the mothur pipeline.
 
 
 PARAMETERS:
@@ -80,6 +77,7 @@ PARAMETERS:
 
                 --error_calc (default 'poisson_binomial'): algorithm used for error calculation.
                         poisson_binomial: calculate the Poisson binomial distribution (sum of bernoulli random variables).
+                        poisson_binomial_py: calculate the Poisson binomial distribution (sum of bernoulli random variables), using the Python implementation.
                         poisson: approximating sum of bernoulli random variables to a poisson distribution.
                         bootstrap: numerical generation of an error distribution (deprecated).
 
@@ -87,6 +85,8 @@ PARAMETERS:
                         treat_as_error: will consider than ambiguities always result in a misread base.
                         disallow: will discard sequences with ambiguities.
                         ignore: will ignore ambiguities.
+
+                --round: Round down the predicted errors to the nearest integer prior to filtering.
 
                 --uncert (default 0.01): Maximum divergence of the observed sequence from the original one due to sequencing errors.
 
@@ -109,6 +109,7 @@ PARAMETERS:
                 --pipeline (default mothur):
                         mothur: output for collapsed sequences will be in mothur\'s fasta + names format.
                         USEARCH: output for collapsed sequences will be in a single fasta file, with abundance information stored in the sequence header.
+                --fastq_offset (default 33): ASCII/qscore encoding.
                 --processors (default 1): number of processes to use.
 
 COMMENTS:
@@ -119,10 +120,10 @@ COMMENTS:
           More details can be found at www.mothur.org/wiki/Make.contigs
 
         - Approximating the sum of bernoulli random variables to a poisson distribution is quicker than calculating 
-          their exact sum (Poisson binomial distribution). That said, the Poisson binomial filtering algorithm is also implemented
-          in C and even the python implementation is quick enough for processing large datasets. The bootstrap method
-          (--error_calc bootstrap) is a numerical algorithm for performing the sum of bernoulli random variables.
-          It is only included for testing purposes.
+          their exact sum (Poisson binomial distribution). It proves specially useful for long reads (>500 nt).
+          That said, the Poisson binomial filtering algorithm is also implemented in C and even the python implementation is quick enough
+          for processing large datasets. The bootstrap method (--error_calc bootstrap) is a numerical algorithm for performing the sum of bernoulli
+          random variables. It is only included for testing purposes.
 
         - Quality-filtering will discard the contigs expected to have more than 'alpha' chances of diverging from the original 
           sequence more than the value specified by the 'uncert' param. That means that, during distance calculation between two
@@ -141,25 +142,40 @@ Distributed under the GNU General Public License.
 
 __author__ = 'Fernando Puente-Sánchez'
 __email__ = 'fpusan@gmail.com'
-__version__ = '0.9.78'
-__date__ = '25-Mar-2015'
-__license__ = 'GPLv3'
-__copyright__ = 'Copyright 2013-2014 Fernando Puente-Sánchez'
+__version__ = '1.0.0'
+__date__ = '07-Jun-2015'
+__license__ = 'BSD-3'
+__copyright__ = 'Copyright 2013-2015 Fernando Puente-Sánchez'
 
-GNU_LICENSE = """
+BSD3_LICENSE = """
 
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+    Copyright (c) 2015, Fernando Puente Sánchez
+    All rights reserved.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    Redistribution and use in source and binary forms, with or without
+    modification, are permitted provided that the following conditions are met:
 
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+    * Redistributions of source code must retain the above copyright notice, this
+      list of conditions and the following disclaimer.
+
+    * Redistributions in binary form must reproduce the above copyright notice,
+      this list of conditions and the following disclaimer in the documentation
+      and/or other materials provided with the distribution.
+
+    * Neither the name of moira nor the names of its
+      contributors may be used to endorse or promote products derived from
+      this software without specific prior written permission.
+
+    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+    AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+    IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+    DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+    FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+    DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+    SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+    CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+    OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+    OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 """
 
@@ -169,7 +185,6 @@ A read-filtering algorithm for high-throughput marker-gene studies that greatly 
 Unpublished.
 """
 
-FASTQ_OFFSET = 33
 
 #Python stdlib imports.
 import sys
@@ -180,6 +195,7 @@ import argparse
 from multiprocessing import Pool
 import traceback
 import resource
+from itertools import izip
 
 #Non stdlib imports.
 numpy = True
@@ -232,14 +248,13 @@ def main():
 
     #Parse arguments for command line and check everything's ok.
     args = parse_arguments()
-    ok = check_arguments(args)
-    if not ok:
+    if not check_arguments(args):
         return 1
 
     ###############
     #Open and create the necessary files.
     try:
-        if args.fastq:
+        if args.forward_fastq:
             forward_fastq_data = open(args.forward_fastq)
             output_name = ('.'.join(args.forward_fastq.split('.')[:-1]))
         else:
@@ -248,7 +263,7 @@ def main():
             output_name = ('.'.join(args.forward_fasta.split('.')[:-1]))
 
         if args.paired:
-            if args.fastq:
+            if args.reverse_fastq:
                 reverse_fastq_data = open(args.reverse_fastq)
             else:
                 reverse_fasta_data = open(args.reverse_fasta)
@@ -256,14 +271,8 @@ def main():
         else:
             reverse_fastq_data, reverse_fasta_data, reverse_qual_data = None, None, None
     
-    except IOError, e:
-        print e
-        print
-        return 1
-
-    try:
         if args.only_contig:
-            if args.fastq:
+            if args.output_format == 'fastq':
                 contig_output = open('%s.contigs.fastq'%output_name, 'w')
                 qual_output = None
             else:
@@ -274,8 +283,9 @@ def main():
             else:
                 names_output = None
             bad_contig_output, bad_qual_output, bad_names_output = None, None, None
+
         else:
-            if args.fastq:
+            if args.output_format == 'fastq':
                 contig_output = open('%s.qc.good.fastq'%output_name, 'w')
                 qual_output = None
                 bad_contig_output = open('%s.qc.bad.fastq'%output_name, 'w')
@@ -294,26 +304,32 @@ def main():
     except IOError, e:
         print e
         print
-        ok = False
         return 1
     ###############
 
     #Now that files are ready, start with the actual work..
     try:
         #Get the number of seqs:
+        if args.forward_fastq:
+            data = forward_fastq_data
+        else:
+            data = forward_fasta_data
         input_seqs = 0.0
-        for line in forward_fasta_data:
-            if line.startswith('>'):
+        for line in data:
+            if args.forward_fastq:
+                input_seqs += 0.25
+            elif line.startswith('>'):
                 input_seqs += 1
             else:
                 pass
-        forward_fasta_data.seek(0)
+        data.seek(0)
         ###############
     
         #Prepare for main loop:
-        pool = Pool(args.processors)
-        if args.fastq:
-            parse_seqs = parse_fastq(forward_fastq_data, reverse_fastq_data)
+        if args.processors > 1:
+            pool = Pool(args.processors)
+        if args.forward_fastq:
+            parse_seqs = parse_fastq(forward_fastq_data, reverse_fastq_data, args.fastq_offset)
         else:
             parse_seqs = parse_fasta_and_qual(forward_fasta_data, forward_qual_data,
                                               reverse_fasta_data, reverse_qual_data)
@@ -341,22 +357,30 @@ def main():
             
             #Read data and launch asynchronous processes:
             results = []
-            for i in range(args.processors):
+            if args.processors > 1:
+                for i in range(args.processors):
+                    try:
+                        header, forward_sequence, forward_quals, reverse_sequence, reverse_quals = parse_seqs.next()
+                        results.append(pool.apply_async(process_data,
+                                        (header, forward_sequence, forward_quals, reverse_sequence, reverse_quals, args)))
+                    except StopIteration:
+                        break
+            else: #Avoid using the pool (Cprofile does not like the multiprocessing module).
                 try:
                     header, forward_sequence, forward_quals, reverse_sequence, reverse_quals = parse_seqs.next()
-                    results.append(pool.apply_async(process_data,
-                                    (header, forward_sequence, forward_quals, reverse_sequence, reverse_quals, args)))
+                    results.append(process_data(header, forward_sequence, forward_quals, reverse_sequence, reverse_quals, args))
                 except StopIteration:
-                    break
-
+                    pass
+            
             #Exit loop if we've finished:
             if not results: 
-                print '%d sequences processed in %.1f seconds.'%(processed_seqs, (time.time() - time_start)) + ' '*50
-                print
+                print '%d sequences processed in %.1f seconds.'%(processed_seqs, (time.time() - time_start)) + ' '*80
                 break
         
             #Retrieve results from asynchronous processes:
-            for header, contig, contig_quals, expected_errors in [result.get() for result in results]:
+            if args.processors > 1:
+                results = [result.get() for result in results]
+            for header, contig, contig_quals, expected_errors in results:
                 if numpy:
                     if isnan(expected_errors): #Should not happen anymore, but we're still testing just in case.
                         raise ReturnedNaNError(header)
@@ -365,15 +389,15 @@ def main():
                     #Collapse unique sequences and choose the representative with the greater quality.
                     if contig not in uniques:
                         uniques[contig] = {'rep_header': header, 'rep_errors': expected_errors,
-                                           'rep_quals': contig_quals, 'names_info': [header.lstrip('>')]}
+                                           'rep_quals': contig_quals, 'names_info': [header]}
                     else:
                         if expected_errors < uniques[contig]['rep_errors']:
                             uniques[contig]['rep_header'] = header
                             uniques[contig]['rep_errors'] = expected_errors
                             uniques[contig]['rep_quals'] = contig_quals
-                            uniques[contig]['names_info'].insert(0, header.lstrip('>'))
+                            uniques[contig]['names_info'].insert(0, header)
                         else:
-                            uniques[contig]['names_info'].append(header.lstrip('>'))                         
+                            uniques[contig]['names_info'].append(header)                         
                 else:
                     #Directly check if the sequence has passed the filter and write it.
                     filtering_results = write_results(processed_seqs, header, contig, contig_quals, expected_errors, None, args,
@@ -409,30 +433,33 @@ def main():
         print '- %d (%.2f%%) of the original sequences were discarded due to low quality.\n'%(discarded_errors, (discarded_errors / processed_seqs) * 100)
         print 'The following output files were generated:'
         if args.only_contig:
-            print '%s.contigs.fasta'%output_name
-            print '%s.contigs.qual'%output_name
-            if args.collapse:
+            if args.output_format == 'fastq':
+                print '%s.contigs.fastq'%output_name
+            else:
+                print '%s.contigs.fasta'%output_name
+                print '%s.contigs.qual'%output_name
+            if args.collapse and args.pipeline == 'mothur':
                 print '%s.contigs.names\n'%output_name
             else:
                 print
         else:
-            print '%s.qc.good.fasta'%output_name
-            print '%s.qc.good.qual'%output_name
+            if args.output_format == 'fastq':
+                print '%s.qc.good.fastq'%output_name
+            else:
+                print '%s.qc.good.fasta'%output_name
+                print '%s.qc.good.qual'%output_name
             if args.collapse and args.pipeline == 'mothur':
                 print '%s.qc.good.names'%output_name
-            print '%s.qc.bad.fasta'%output_name
-            print '%s.qc.bad.qual'%output_name
+            if args.output_format == 'fastq':
+                print '%s.qc.bad.fastq'%output_name
+            else:   
+                print '%s.qc.bad.fasta'%output_name
+                print '%s.qc.bad.qual'%output_name
             if args.collapse and args.pipeline == 'mothur':
                 print '%s.qc.bad.names\n'%output_name
             else:
                 print
         ###############
-
-    except Exception, e:
-        #So we did screw up...
-        print e
-        print
-        ok = False
 
     #Tidy your room after you play (even if you kinda broke your toys).
     finally:
@@ -453,12 +480,6 @@ def main():
         except:
             pass
 
-        finally:
-            #Did we screw up again?
-            if not ok:
-                return 1
-            else:
-                return 0 #Phew...
     ###############
 
         
@@ -483,7 +504,7 @@ def parse_arguments():
                         help = 'Forward fastq file.')
     general.add_argument('-rfq', '--reverse_fastq', type = str,
                         help = 'Forward fastq file.')
-    general.add_argument('-r', '--relabel', type = str,
+    general.add_argument('-l', '--relabel', type = str,
                         help = 'Generate sequential labels for the ordered sequences, with the specified string at the beginning.') 
     general.add_argument('-o', '--output_format', type = str, default = 'fasta',
                         choices = ('fasta' , 'fastq'),
@@ -493,10 +514,9 @@ def parse_arguments():
                         help = 'Make the output format compatible with the indicated analysis pipeline.')
     general.add_argument('-p', '--processors', type = int, default = 1,
                         help = 'Number of processors to be used.')
-    general.add_argument('--fastq', action = 'store_true',
-                        help = 'Input files are in fastq format')
     general.add_argument('--paired', action = 'store_true',
                         help = 'Assemble paired-end reads and perform quality control on the resulting contig.')
+    general.add_argument('-fo', '--fastq_offset', type = int, default = 33)
     general.add_argument('--only_contig', action = 'store_true',
                         help = 'Assemble contigs but don\'t perform quality control.')
     general.add_argument('--doc', action = 'store_true',
@@ -523,11 +543,13 @@ def parse_arguments():
     filtering.add_argument('-t', '--truncate', type = int,
                         help = 'Truncate sequences to a fixed length before quality control. Discard smaller sequences.')
     filtering.add_argument('-e', '--error_calc', type = str, default = 'poisson_binomial',
-                        choices = ('poisson_binomial', 'poisson', 'bootstrap'),
+                        choices = ('poisson_binomial', 'poisson_binomial_py', 'poisson', 'bootstrap'),
                         help = 'Error calculation method.')
     filtering.add_argument('-n', '--ambigs', type = str, default = 'treat_as_errors',
                         choices = ('disallow', 'ignore', 'treat_as_errors'),
                         help = 'Treatment of ambiguities: remove sequences with ambigs, ignore ambigs, treat ambigs as errors.')
+    filtering.add_argument('-r', '--round', action = 'store_true',
+                        help = 'Round down the predicted number of errors to their nearest integer prior to filtering.')
     err_uncert = filtering.add_mutually_exclusive_group()
     err_uncert.add_argument('-u', '--uncert', type = float, default = 0.01,
                         help = 'Maximum allowed uncertainty (errors / sequence length).')
@@ -563,25 +585,15 @@ def check_arguments(args):
         #Check for missing arguments.
         if args.only_contig:
             args.paired = True
-        if args.fastq:
-            if not args.forward_fastq:
-                print '- You must provide at least one fastq file.'
-                ok = False
-            if args.paired and not args.reverse_fastq:
-                print '- You must provide a reverse fastq file.'
-                ok = False
         else:
-            if not args.forward_fasta or not args.forward_qual:
+            if not args.forward_fastq and (not args.forward_fasta or not args.forward_qual):
                 print '- You must at least provide one fastq file, or a fasta and quality files.'
                 ok = False
             if args.paired:
-                if not args.reverse_fasta or not args.reverse_qual:
-                    print '- You must provide reverse fasta and quality files.'
+                if not args.reverse_fastq and (not args.reverse_fasta or not args.reverse_qual):
+                    print '- You must provide one reverse fastq file, or reverse fasta and quality files.'
                     ok = False
         #Check for arguments with wrong values (type checking was performed by argparse).
-        if args.fastq or args.output_format == 'fastq':
-            print '- Fastq handling is not implemented yet. Please use FASTA + QUAL instead.'
-            ok = False     
         if args.match < 0:
             print '- Needleman-Wunsch match score must be a non-negative integer.'
             ok = False
@@ -650,9 +662,12 @@ def process_data(header, forward_sequence, forward_quals, reverse_sequence, reve
  
         if args.only_contig:
             expected_errors = 0
+
         else:
-            if args.error_calc == 'poisson_binomial':
-                if Cbernoulli:
+            #Having qvalues of 0 (happened in artificial datasets) will lead to divisions by zero in the PB error calculation.
+            contig_quals = [qual if qual > 0 else 1 for qual in contig_quals]
+            if args.error_calc in ('poisson_binomial', 'poisson_binomial_py'):
+                if args.error_calc == 'poisson_binomial' and Cbernoulli:
                     expected_errors, Ns = bernoulli.calculate_errors_PB(contig, contig_quals, args.alpha)
                 else:
                     expected_errors, Ns = calculate_errors_PB(contig, contig_quals, args.alpha)
@@ -664,8 +679,13 @@ def process_data(header, forward_sequence, forward_quals, reverse_sequence, reve
             if args.ambigs == 'treat_as_errors':
                 expected_errors = expected_errors + Ns
 
+        if args.round:
+            expected_errors = math.floor(expected_errors)
+
         return header, contig, contig_quals, expected_errors
 
+    except KeyboardInterrupt: #Let KeyboardInterrupt be raised only in the main function, b/c it hangs the program when catched inside a multiprocessing pool.
+        pass
     except:
         traceback.print_exc()
         raise
@@ -690,15 +710,21 @@ def write_results(index, header, sequence, quals, expected_errors, names_info, a
             size = 1
         header = header + ';ee=%.2f;size=%d;'%(expected_errors, size)
     if args.only_contig:
-        contig_output.write('%s\n%s\n'%(header, sequence))
-        qual_output.write('%s\n%s\n'%(header, ' '.join(map(str, quals))))
+        if args.output_format == 'fastq':
+            contig_output.write('@%s\n%s\n+\n%s\n'%(header, sequence, ''.join([chr(qual + args.fastq_offset) for qual in quals])))
+        else:
+            contig_output.write('%s\n%s\n'%(header, sequence))
+            qual_output.write('%s\n%s\n'%(header, ' '.join(map(str, quals))))
         if args.collapse and args.pipeline == 'mothur':
             names_output.write('%s\t%s\n'%(header.lstrip('>'), ','.join(names_info)))
         return 0, 0
 
     elif len(sequence) < args.truncate:
-        bad_contig_output.write('%s\tlength below %s\n%s\n'%(header, args.truncate, sequence))
-        bad_qual_output.write('%s\tlength below %s\n%s\n'%(header, args.truncate, ' '.join(map(str, quals))))
+        if args.output_format == 'fastq':
+            bad_contig_output.write('@%s\tlength below %s\n%s\n+\n%s\n'%(header, args.truncate, sequence, ''.join([chr(qual + args.fastq_offset) for qual in quals])))
+        else:
+            bad_contig_output.write('%s\tlength below %s\n%s\n'%(header, args.truncate, sequence))
+            bad_qual_output.write('%s\tlength below %s\n%s\n'%(header, args.truncate, ' '.join(map(str, quals))))
         if args.collapse:
             if args.pipeline == 'mothur':
                 bad_names_output.write('%s\t%s\n'%(header.lstrip('>'), ','.join(names_info)))
@@ -707,25 +733,34 @@ def write_results(index, header, sequence, quals, expected_errors, names_info, a
             return 0, 1
         
     elif 'N' in sequence and args.ambigs == 'disallow':
-        bad_contig_output.write('%s\tcontains ambiguities\n%s\n'%(header, sequence))
-        bad_qual_output.write('%s\tcontains ambiguities\n%s\n'%(header, ' '.join(map(str, quals))))
+        if args.output_format == 'fastq':
+            bad_contig_output.write('@%s\tcontains ambiguities\n%s\n+\n%s\n'%(header, sequence, ''.join([chr(qual + args.fastq_offset) for qual in quals])))
+        else:
+            bad_contig_output.write('%s\tcontains ambiguities\n%s\n'%(header, sequence))
+            bad_qual_output.write('%s\tcontains ambiguities\n%s\n'%(header, ' '.join(map(str, quals))))
         if args.collapse:
             if args.pipeline == 'mothur':
-                bad_names_output.write('%s\t%s\n'%(header.lstrip('>'), ','.join(names_info)))
+                bad_names_output.write('%s\t%s\n'%(header, ','.join(names_info)))
             return len(names_info), 0
         else:
             return 1, 0
 
     elif args.maxerrors: #maxerrors mode.
         if expected_errors <= args.maxerrors:
-            contig_output.write('%s\n%s\n'%(header, sequence))
-            qual_output.write('%s\n%s\n'%(header, ' '.join(quals)))
+            if args.output_format == 'fastq':
+                contig_output.write('@%s\n%s\n+\n%s\n'%(header, sequence, ''.join([chr(qual + args.fastq_offset) for qual in quals])))
+            else:
+                contig_output.write('>%s\n%s\n'%(header, sequence))
+                qual_output.write('>%s\n%s\n'%(header, ' '.join(quals)))
             if args.collapse and args.pipeline == 'mothur':
-                names_output.write('%s\t%s\n'%(header.lstrip('>'), ','.join(names_info)))
+                names_output.write('%s\t%s\n'%(header, ','.join(names_info)))
             return 0, 0
         else:
-            bad_contig_output.write('%s\terrors > %.2f\n%s\n'%(header, args.maxerrors, sequence))
-            bad_qual_output.write('%s\terrors > %.2f\n%s\n'%(header, args.maxerrors, ' '.join(quals)))
+            if args.output_format == 'fastq':
+                bad_contig_output.write('@%s\terrors > %.2f\n%s\n+\n%s\n'%(header, args.maxerrors, sequence, ''.join([chr(qual + args.fastq_offset) for qual in quals])))
+            else: 
+                bad_contig_output.write('>%s\terrors > %.2f\n%s\n'%(header, args.maxerrors, sequence))
+                bad_qual_output.write('>%s\terrors > %.2f\n%s\n'%(header, args.maxerrors, ' '.join(quals)))
             if args.collapse:
                 if args.pipeline == 'mothur':
                     bad_names_output.write('%s\t%s\n'%(header.lstrip('>'), ','.join(names_info)))
@@ -735,17 +770,23 @@ def write_results(index, header, sequence, quals, expected_errors, names_info, a
 
     else: #uncert mode.
         if expected_errors <= len(sequence) * args.uncert:
-            contig_output.write('%s\n%s\n'%(header, sequence))
-            qual_output.write('%s\n%s\n'%(header, ' '.join(map(str, quals))))
+            if args.output_format == 'fastq':
+                contig_output.write('@%s\n%s\n+\n%s\n'%(header, sequence, ''.join([chr(qual + args.fastq_offset) for qual in quals])))
+            else:
+                contig_output.write('>%s\n%s\n'%(header, sequence))
+                qual_output.write('>%s\n%s\n'%(header, ' '.join(map(str, quals))))
             if args.collapse and args.pipeline == 'mothur':
-                names_output.write('%s\t%s\n'%(header.lstrip('>'), ','.join(names_info)))
+                names_output.write('%s\t%s\n'%(header, ','.join(names_info)))
             return 0, 0
         else:
-            bad_contig_output.write('%s\tuncert > %.3f\n%s\n'%(header, args.uncert, sequence))
-            bad_qual_output.write('%s\tuncert > %.3f\n%s\n'%(header, args.uncert, ' '.join(map(str, quals))))
+            if args.output_format == 'fastq':
+                bad_contig_output.write('@%s\tuncert > %.3f\n%s\n+\n%s\n'%(header, args.uncert, sequence, ''.join([chr(qual + args.fastq_offset) for qual in quals])))
+            else:
+                bad_contig_output.write('>%s\tuncert > %.3f\n%s\n'%(header, args.uncert, sequence))
+                bad_qual_output.write('>%s\tuncert > %.3f\n%s\n'%(header, args.uncert, ' '.join(map(str, quals))))
             if args.collapse:
                 if args.pipeline == 'mothur':
-                    bad_names_output.write('%s\t%s\n'%(header.lstrip('>'), ','.join(names_info)))
+                    bad_names_output.write('%s\t%s\n'%(header, ','.join(names_info)))
                 return len(names_info), 0
             else:
                 return 1, 0
@@ -795,6 +836,8 @@ class NameMismatchError(Exception):
     def __str__(self):
         if not self.rfheader:
             return 'Fasta header does not match Qfile header. Offending headers were: FASTA: %s   QFILE: %s'%(repr(self.lfheader), repr(self.lqheader))
+        elif not self.lqheader:
+            return 'Header mismatch. Offending headers were: forward_fastq: %s,   reverse_fastq %s'%(repr(self.lfheader), repr(self.rfheader))
         else:
             return 'Header mismatch. Offending headers were: forward_fasta: %s   forward_qual %s   reverse_fasta %s   reverse_qual %s'%(
                     repr(self.lfheader), repr(self.lqheader), repr(self.rfheader), repr(self.rqheader))
@@ -810,6 +853,8 @@ class LengthMismatchError(Exception):
         if None not in (self.fheader, self.ffilename, self.qfilename):
             return 'Error reading sequence %s in files %s and %s. Sequence length and quality length do not match'%(repr(self.fheader), repr(self.ffilename),
                                                                                                                      repr(self.qfilename))
+        elif not self.qfilename:
+            return 'Error reading sequence %s in file %s. Sequence length and quality length do not match'%(repr(self.fheader), repr(self.ffilename))
         else:
             return 'Sequence and qualities are of different lengths.'
 
@@ -860,13 +905,13 @@ def parse_fasta_and_qual(forward_fasta_data, forward_qual_data, reverse_fasta_da
             if not forward_fasta_header and not forward_qual_header:
                 break
 
-        forward_fasta_header = forward_fasta_header.strip().replace('\t', ' ').split(' ')[0]
+        forward_fasta_header = forward_fasta_header.strip().replace('\t', ' ').split(' ')[0].lstrip('>').replace(':', '_')
         forward_sequence = forward_fasta_data.readline().strip()
-        forward_qual_header = forward_qual_header.strip().split('\t')[0].replace('\t', ' ').split(' ')[0]
+        forward_qual_header = forward_qual_header.strip().replace('\t', ' ').split(' ')[0].lstrip('>').replace(':', '_')
         forward_quals = map(int, forward_qual_data.readline().strip().replace('\t', ' ').split(' '))
-        if reverse_fasta_data: reverse_fasta_header = reverse_fasta_header.replace('\t', ' ').strip().split(' ')[0]
+        if reverse_fasta_data: reverse_fasta_header = reverse_fasta_header.replace('\t', ' ').strip().split(' ')[0].lstrip('>').replace(':', '_')
         if reverse_fasta_data: reverse_sequence = reverse_fasta_data.readline().strip()
-        if reverse_qual_data: reverse_qual_header = reverse_qual_header.strip().replace('\t', ' ').split('\t')[0].split(' ')[0]
+        if reverse_qual_data: reverse_qual_header = reverse_qual_header.strip().replace('\t', ' ').split('\t')[0].split(' ')[0].lstrip('>').replace(':', '_')
         if reverse_qual_data: reverse_quals = map(int, reverse_qual_data.readline().strip().replace('\t', ' ').split(' '))
    
         if reverse_fasta_data and reverse_qual_data and len(set([forward_fasta_header, reverse_fasta_header, forward_qual_header, reverse_qual_header])) != 1:
@@ -891,12 +936,61 @@ def parse_fasta_and_qual(forward_fasta_data, forward_qual_data, reverse_fasta_da
             yield forward_fasta_header, forward_sequence, forward_quals, None, None
 
 
-def parse_fastq(forward_fastq_data, reverse_fastq_data = None):
+def parse_fastq(forward_fastq_data, reverse_fastq_data = None, fastq_offset = 33):
     """
     Parse fastq files.
     If paired files are provided, will check if the headers match.
     """
-    raise Exception('Not implemented')
+
+    if reverse_fastq_data:
+        data = izip(forward_fastq_data, reverse_fastq_data)
+    else:
+        data = forward_fastq_data
+
+    forward_buffer = []
+    reverse_buffer = []
+    
+    for line in data:
+        
+        if reverse_fastq_data:
+            forward_buffer.append(line[0].strip())
+            reverse_buffer.append(line[1].strip())
+        else:
+            forward_buffer.append(line.strip())
+            
+        if len(forward_buffer) == 4:
+            forward_header = forward_buffer[0].replace('\t', ' ').split(' ')[0].lstrip('@').replace(':', '_')
+            forward_sequence = forward_buffer[1]
+            forward_quals = [ord(x) - fastq_offset for x in forward_buffer[3]]
+            if not forward_sequence:
+                raise EmptySeqError(forward_header, forward_fastq_data.name)
+            if not forward_quals:
+                raise EmptyQualError(forward_header, forward_fastq_data.name)              
+            if len(forward_sequence) != len(forward_quals):
+                raise LengthMismatchError(forward_header, forward_fastq_data.name)
+            forward_buffer = []
+            
+            if reverse_fastq_data:
+                reverse_header = reverse_buffer[0].replace('\t', ' ').split(' ')[0].lstrip('@').replace(':', '_')
+                reverse_sequence = reverse_buffer[1]
+                reverse_quals = [ord(x) - fastq_offset for x in reverse_buffer[3]]
+                if not reverse_sequence:
+                    raise EmptySeqError(forward_header, forward_fastq_data.name)
+                if not reverse_quals:
+                    raise EmptyQualError(forward_header, forward_fastq_data.name)              
+                if len(reverse_sequence) != len(reverse_quals):
+                    raise LengthMismatchError(reverse_header, reverse_fastq_data.name)
+
+                if forward_header != reverse_header:
+                    raise NameMismatchError(forward_fastq_header, None, reverse_fastq_header, None)
+                reverse_buffer = []
+
+                yield forward_header, forward_sequence, forward_quals, reverse_sequence, reverse_quals
+
+            else:
+                yield forward_header, forward_sequence, forward_quals, None, None
+            
+        
 
 
 def reverse_complement(sequence, quals = None):
