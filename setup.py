@@ -9,12 +9,12 @@ nw_align = Extension('nw_align', sources = ['moira/nw_align.c'])
 setup(
     name = 'moira',
     packages = ['moira'],
-    version = '0.9.9',
+    version = 'v1.0.0',
     description = 'A random test lib',
     author = 'Fernando Puente-Sánchez',
     author_email = 'fpusan@gmail.com',
     url = 'https://github.com/fpusan/moira', # use the URL to the github repo
-    download_url = 'https://github.com/fpusan/moira/tarball/0.9.9', # I'll explain this in a second
+    download_url = 'https://github.com/fpusan/moira/tarball/1.0.0', # I'll explain this in a second
     license='BSD',
     keywords = ['testing', 'logging', 'example'], # arbitrary keywords
     classifiers=[
