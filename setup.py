@@ -14,7 +14,7 @@ setup(
     author = 'Fernando Puente-Sánchez',
     author_email = 'fpusan@gmail.com',
     url = 'https://github.com/fpusan/moira', # use the URL to the github repo
-    download_url = 'https://github.com/fpusan/moira/tarball/1.0.1', # I'll explain this in a second
+    download_url = 'https://github.com/fpusan/moira/tarball/v1.0.1', # I'll explain this in a second
     license='BSD',
     keywords = ['testing', 'logging', 'example'], # arbitrary keywords
     classifiers=[
