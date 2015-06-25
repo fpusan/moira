@@ -1,8 +1,8 @@
 /*
 author = 'Fernando Puente-Sánchez'
 email = 'fpusan@gmail.com'
-version = '0.5'
-date = '11-Aug-2014'
+version = '1.0.1'
+date = '10-Jun-2015'
 license = 'BSD-3'
 copyright = 'Copyright 2013-2015 Fernando Puente-Sánchez'
 
@@ -21,9 +21,10 @@ BSD3_LICENSE = """
       this list of conditions and the following disclaimer in the documentation
       and/or other materials provided with the distribution.
 
-    * Neither the name of moira nor the names of its
-      contributors may be used to endorse or promote products derived from
-      this software without specific prior written permission.
+    * Neither the name of moira, Poisson binomial filtering and its Poisson
+      approximation, nor the names of its contributors may be used to endorse or
+      promote products derived from this software without specific prior
+      written permission.
 
     THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
     AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -100,9 +101,9 @@ static PyMethodDef module_methods[] = {
     {NULL, NULL, 0, NULL}
 };
 
-PyMODINIT_FUNC initbernoulli(void)
+PyMODINIT_FUNC initbernoulli2(void)
 {
-	(void) Py_InitModule("bernoulli", module_methods);
+	(void) Py_InitModule("bernoulli2", module_methods);
 }
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -193,45 +194,52 @@ struct tuple test(char contig[], int contig_quals[], double alpha)
 	int j;
 	int k;
         double per_position_accum_probs[max_expected_errors][contig_length - Ns];
-
-	while (1)
-	{	
-		for(k = 0; k < contig_length - Ns; k++)
-		{
-			if(k == 0)
+	struct tuple result;
+        result.Ns = Ns;
+	if((contig_length - Ns) > 0)
+	{
+		while (1)
+		{	
+			for(k = 0; k < contig_length - Ns; k++)
 			{
-				per_position_accum_probs[expected_errors][k] = prob_j_errors(error_probs[k], expected_errors, n);
+				if(k == 0)
+				{
+					per_position_accum_probs[expected_errors][k] = prob_j_errors(error_probs[k], expected_errors, n);
+				}
+				else
+				{	
+					per_position_accum_probs[expected_errors][k] = sum_of_binomials(expected_errors, k, n, contig_length - Ns, error_probs, per_position_accum_probs);
+				}
+			}	
+
+			probability = per_position_accum_probs[expected_errors][contig_length - Ns - 1];
+	
+			if(expected_errors == 0)
+			{
+				accumulated_probs[expected_errors] = probability;
 			}
 			else
-			{	
-				per_position_accum_probs[expected_errors][k] = sum_of_binomials(expected_errors, k, n, contig_length - Ns, error_probs, per_position_accum_probs);
+			{
+				accumulated_probs[expected_errors] = accumulated_probs[expected_errors - 1] + probability;
 			}
-		}	
 
-		probability = per_position_accum_probs[expected_errors][contig_length - Ns - 1];
-	
-		if(expected_errors == 0)
-		{
-			accumulated_probs[expected_errors] = probability;
-		}
-		else
-		{
-			accumulated_probs[expected_errors] = accumulated_probs[expected_errors - 1] + probability;
+			if(accumulated_probs[expected_errors] > (1 - alpha))
+			{
+				break;
+			}
+			else
+			{
+				expected_errors ++;
+			}
 		}
 
-		if(accumulated_probs[expected_errors] > (1 - alpha))
-		{
-			break;
-		}
-		else
-		{
-			expected_errors ++;
-		}
+		result.expected_errors = interpolate(expected_errors - 1, accumulated_probs[expected_errors - 1], expected_errors, accumulated_probs[expected_errors], alpha); 
 	}
 
-	struct tuple result;
-	result.expected_errors = interpolate(expected_errors - 1, accumulated_probs[expected_errors - 1], expected_errors, accumulated_probs[expected_errors], alpha); 
-	result.Ns = Ns;
+	else
+	{
+		result.expected_errors = 0; 
+	}
 
 	return result;
 }

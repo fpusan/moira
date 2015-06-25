@@ -9,7 +9,7 @@ nw_align = Extension('nw_align', sources = ['moira/nw_align.c'])
 setup(
     name = 'moira',
     packages = ['moira'],
-    version = 'v1.0.0',
+    version = 'v1.0.1',
     description = 'A random test lib',
     author = 'Fernando Puente-Sánchez',
     author_email = 'fpusan@gmail.com',

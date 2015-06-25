@@ -142,8 +142,8 @@ Distributed under the GNU General Public License.
 
 __author__ = 'Fernando Puente-Sánchez'
 __email__ = 'fpusan@gmail.com'
-__version__ = '1.0.0'
-__date__ = '07-Jun-2015'
+__version__ = '1.0.1'
+__date__ = '10-Jun-2015'
 __license__ = 'BSD-3'
 __copyright__ = 'Copyright 2013-2015 Fernando Puente-Sánchez'
 
@@ -162,9 +162,10 @@ BSD3_LICENSE = """
       this list of conditions and the following disclaimer in the documentation
       and/or other materials provided with the distribution.
 
-    * Neither the name of moira nor the names of its
-      contributors may be used to endorse or promote products derived from
-      this software without specific prior written permission.
+    * Neither the name of moira, Poisson binomial filtering and its Poisson
+      approximation, nor the names of its contributors may be used to endorse or
+      promote products derived from this software without specific prior
+      written permission.
 
     THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
     AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -1355,21 +1356,26 @@ def calculate_errors_PB(sequence, quals, alpha):
     expected_errors = 0
     accumulated_probs = [0] #[0] so the first while loop is executed
     per_position_accum_probs = []
-    while 1:
-        per_position_accum_probs.append([])
-        for k in range(len(error_probs)):
-            if k == 0:
-                per_position_accum_probs[expected_errors].append(prob_j_errors(error_probs[k], expected_errors, n))
+    
+    if error_probs:
+        while 1:
+            per_position_accum_probs.append([])
+            for k in range(len(error_probs)):
+                if k == 0:
+                    per_position_accum_probs[expected_errors].append(prob_j_errors(error_probs[k], expected_errors, n))
+                else:
+                    per_position_accum_probs[expected_errors].append(sum_of_binomials(expected_errors, k))
+            probability = per_position_accum_probs[-1][-1]
+            accumulated_probs.append(accumulated_probs[-1] + probability)
+            if accumulated_probs[-1] > (1 - alpha):
+                break
             else:
-                per_position_accum_probs[expected_errors].append(sum_of_binomials(expected_errors, k))
-        probability = per_position_accum_probs[-1][-1]
-        accumulated_probs.append(accumulated_probs[-1] + probability)
-        if accumulated_probs[-1] > (1 - alpha):
-            break
-        else:
-            expected_errors += 1
+                expected_errors += 1
+                
+        expected_errors = interpolate(expected_errors - 1, accumulated_probs[-2], expected_errors, accumulated_probs[-1], alpha)
 
-    expected_errors = interpolate(expected_errors - 1, accumulated_probs[-2], expected_errors, accumulated_probs[-1], alpha)
+    else:
+        expected_errors = 0
 
     return expected_errors, Ns
 
