@@ -15,7 +15,7 @@ INSTALLATION INSTRUCTIONS:
 
 - moira is available as a pip-installable python package. To install it just run *pip install moira* in a terminal. Alternatively, download and unzip the tarball and run *python setup.py install*.
 
-- The tests folder includes a basic unit testing script and sample sequences to check that everything is going OK. If the program is not working in your platform (or everything works, but you have questions anyway) please do not hesitate to contact me at fpusan@gmail.com.
+- The moira/tests folder includes a basic unit testing script and sample sequences to check that everything is going OK. If the program is not working in your platform (or everything works, but you have questions anyway) please do not hesitate to contact me at fpusan@gmail.com.
 
 - The moira.py contains the python implementation of the Poisson binomial algorithm. It will perform as a standalone script as described here.
 
