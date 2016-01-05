@@ -1,7 +1,7 @@
 /*
 author = 'Fernando Puente-Sánchez'
 email = 'fpusan@gmail.com'
-version = '1.0.1'
+version = '1.0.2'
 date = '10-Jun-2015'
 license = 'BSD-3'
 copyright = 'Copyright 2013-2015 Fernando Puente-Sánchez'
@@ -40,9 +40,9 @@ BSD3_LICENSE = """
 """
 
 CITATION = """
-Puente-Sánchez F, Aguirre J, Parro V (2014),
-A read-filtering algorithm that greatly improves OTU accuracy.
-Unpublished.
+Puente-Sánchez F, Aguirre J, Parro V (2015),
+A novel conceptual approach to read-filtering in high-throughput amplicon sequencing studies.
+Nucleic acids research, gkv1113.
 """
 */
 
