@@ -54,7 +54,7 @@ Nucleic acids research, gkv1113.
 /// Documentation
 static char module_docstring[] = "This module provides an interface for calculating the expected errors of a given sequence using a sum of Bernoulli random variables.";
 static char calculate_errors_PB_docstring[] = "This function returns the expected errors of a given sequence with a given confidence value using a sum of Bernoulli random variables.";
-/// Compile with: gcc -fpic -shared -I /usr/include/python2.6/ -o bernoulli.so bernoullimodule.c
+/// Compile with: gcc -fpic -shared -I /usr/include/python2.7/ -o bernoulli.so bernoullimodule.c
 
 /// C declarations ////////////////////////////////////////////////////////////////////////////////
 double prob_j_errors(double p, int j, int n);
