@@ -2,9 +2,9 @@
 author = 'Fernando Puente-Sánchez'
 email = 'fpusan@gmail.com'
 version = '1.0.2'
-date = '10-Jun-2015'
+date = '05-Jan-2016'
 license = 'BSD-3'
-copyright = 'Copyright 2013-2015 Fernando Puente-Sánchez'
+copyright = 'Copyright 2013-2016 Fernando Puente-Sánchez'
 
 BSD3_LICENSE = """
 
@@ -66,31 +66,44 @@ struct tuple test(char contig[], int contig_quals[], double alpha);
 static PyObject *calculate_errors_PB(PyObject* self, PyObject* args)
 
 {
-        char *contig;
-        PyObject * contig_quals_listObj; //Python int list.
-        PyObject * intObj;               //A python int inside the list.
-        double alpha;
-        /// Parse python input tuple into C variables.
-        if (!PyArg_ParseTuple(args, "sO!d", &contig, &PyList_Type, &contig_quals_listObj, &alpha)) //The 0! parses for a Python Object (contig_quals_listObj)
-        {                                                                                          //Checked to be of type PyListType.
-                return NULL;
-        }
-        ///Parse the python list into a C array.
-        int contig_quals_size = PyList_Size(contig_quals_listObj);
-        int contig_quals[contig_quals_size];
-        int i;
-        if (contig_quals_size < 0)
-	{
-		return NULL; //Not a list.
+	char *contig;
+	PyObject * contig_quals_listObj; //Python int list.
+	PyObject * intObj;	       //A python int inside the list.
+	double alpha;
+	/// Parse python input tuple into C variables.
+	if (!PyArg_ParseTuple(args, "sO!d", &contig, &PyList_Type, &contig_quals_listObj, &alpha)) //The 0! parses for a Python Object (contig_quals_listObj)
+	{											  //Checked to be of type PyListType.
+		return NULL;
 	}
+	///Check that alpha is between 0 and 1.
+	if (alpha <= 0 || alpha >= 1)
+	{
+		PyErr_SetString(PyExc_ValueError, "Alpha must be between 0 and 1");
+        	return NULL;
+	}		
+	///Check that sequence and quality are of the same length.
+	int contig_quals_size = PyList_Size(contig_quals_listObj);
+	if (contig_quals_size != strlen(contig))
+	{
+		PyErr_SetString(PyExc_ValueError, "contig and contig_quals must have the same length");
+        	return NULL;
+	}
+	///Parse the python list into a C array.
+	int contig_quals[contig_quals_size];
+	int i;
 	for (i = 0; i < contig_quals_size; i++)
 	{
-            intObj = PyList_GetItem(contig_quals_listObj, i);
-            contig_quals [i] = (int)PyInt_AsLong(intObj); //Since python integers are actually implemented as C long integers. 
-        }   
-        /// Get results.
-        struct tuple results = test(contig, contig_quals, alpha);
-        /// Build the output tuple.
+		intObj = PyList_GetItem(contig_quals_listObj, i);
+		contig_quals [i] = (int)PyInt_AsLong(intObj); //Since python integers are actually implemented as C long integers.
+		///If this raised an exception, return it.
+		if (PyErr_Occurred())
+		{
+			return NULL;
+		}
+	}
+	/// Get results.
+	struct tuple results = test(contig, contig_quals, alpha);
+	/// Build the output tuple.
 	PyObject *result = Py_BuildValue("di", results.expected_errors, results.Ns);
 	return result;
 }
@@ -136,7 +149,7 @@ double sum_of_binomials(int j, int k, int n, int(qual_length), double error_prob
 {
 	double probability = 0;
 	int i;
-        
+	
 	for(i = 0; i <= j; i++)
 	{
 		probability += prob_j_errors(error_probs[k], i, n) * per_position_accum_probs[j-i][k-1];
@@ -193,9 +206,9 @@ struct tuple test(char contig[], int contig_quals[], double alpha)
 	double accumulated_probs[max_expected_errors];
 	int j;
 	int k;
-        double per_position_accum_probs[max_expected_errors][contig_length - Ns];
+	double per_position_accum_probs[max_expected_errors][contig_length - Ns];
 	struct tuple result;
-        result.Ns = Ns;
+	result.Ns = Ns;
 	if((contig_length - Ns) > 0)
 	{
 		while (1)
