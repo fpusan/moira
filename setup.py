@@ -9,24 +9,25 @@ nw_align = Extension('nw_align', sources = ['moira/nw_align.c'])
 setup(
     name = 'moira',
     packages = ['moira'],
-    version = 'v1.0.1',
-    description = 'A random test lib',
+    version = 'v1.0.2',
+    description = 'Quality-filter raw sequence reads using the Poisson binomial filtering algorithm',
     author = 'Fernando Puente-Sánchez',
     author_email = 'fpusan@gmail.com',
     url = 'https://github.com/fpusan/moira', # use the URL to the github repo
-    download_url = 'https://github.com/fpusan/moira/tarball/v1.0.1', # I'll explain this in a second
+    download_url = 'https://github.com/fpusan/moira/tarball/v1.0.2',
     license='BSD',
-    keywords = ['testing', 'logging', 'example'], # arbitrary keywords
+    keywords = ['high-throughput sequencing', 'microbial ecology', '16S analysis', 'marker-gene',
+                'bioinformatics', 'Illumina', '454', 'IonTorrent', 'quality-filtering'],
     classifiers=[
         # How mature is this project? Common values are
         #   3 - Alpha
         #   4 - Beta
         #   5 - Production/Stable
-        'Development Status :: 4 - Beta',
+        'Development Status :: 5 - Production/Stable',
 
         # Indicate who your project is intended for
-        'Intended Audience :: Developers',
-        'Topic :: Software Development :: Build Tools',
+        'Intended Audience :: Science/Research',
+        'Topic :: Scientific/Engineering :: Bio-Informatics',
 
         # Pick your license as you wish (should match "license" above)
          'License :: OSI Approved :: BSD License',
