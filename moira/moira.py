@@ -6,6 +6,12 @@
 
 Quality-filter raw sequence reads using the Poisson binomial filtering algorithm.
 
+The moira.py script and the Poisson binomial filtering algorithm are now described in the following paper:
+
+    Puente-Sánchez, F., Aguirre, J., & Parro, V. (2015). A novel conceptual approach to read-filtering in high-throughput amplicon sequencing studies. Nucleic acids research, gkv1113.
+
+which can be accessed online at: https://nar.oxfordjournals.org/content/early/2015/11/06/nar.gkv1113.full
+
 REQUIREMENTS:
 
 - Expects that input sequences (single or paired) and qualities are in the same order.
@@ -34,7 +40,7 @@ USAGE:
 OUTPUT:
 
     - If quality control is being performed, files will be generated with both the sequences that passed the QC and the ones 
-      that didn't. A small report will be included on the headers of the contigs that didn't pass the QC.
+      that didn't. A brief report will be included on the headers of the contigs that didn't pass the QC.
 
         <INPUT_NAME>.qc.good.fasta
         <INPUT_NAME>.qc.good.qual
@@ -46,6 +52,7 @@ OUTPUT:
         <INPUT_NAME>.contigs.fasta
         <INPUT_NAME>.contigs.qual
 
+    - If --output_format is set to "fastq", fastq files will be generated instead of fasta + qual files.
     - If identical sequences are being collapsed, mothur-formatted name files (or UPARSE formatted sequence headers) will also be generated.
     - moira.py will replace ':' for '_' in sequence names for compatibility with the mothur pipeline.
 
