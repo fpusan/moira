@@ -8,7 +8,9 @@ Quality-filter raw sequence reads using the Poisson binomial filtering algorithm
 
 The moira.py script and the Poisson binomial filtering algorithm are now described in the following paper:
 
-    Puente-Sánchez, F., Aguirre, J., & Parro, V. (2015). A novel conceptual approach to read-filtering in high-throughput amplicon sequencing studies. Nucleic acids research, gkv1113.
+    Puente-Sánchez, F., Aguirre, J., & Parro, V. (2015).
+    A novel conceptual approach to read-filtering in high-throughput amplicon sequencing studies.
+    Nucleic acids research, gkv1113.
 
 which can be accessed online at: https://nar.oxfordjournals.org/content/early/2015/11/06/nar.gkv1113.full
 
