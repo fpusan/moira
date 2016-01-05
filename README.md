@@ -52,7 +52,7 @@ USAGE:
 
 OUTPUT:
 
-  - If quality control is being performed, files will be generated with both the sequences that passed the QC and the ones that didn't. A small report will be included on the headers of the contigs that didn't pass the QC.
+  - If quality control is being performed, files will be generated with both the sequences that passed the QC and the ones that didn't. A brief report will be included on the headers of the contigs that didn't pass the QC.
 
         <INPUT_NAME>.qc.good.fasta
         <INPUT_NAME>.qc.good.qual
@@ -63,7 +63,8 @@ OUTPUT:
 
         <INPUT_NAME>.contigs.fasta
         <INPUT_NAME>.contigs.qual
-
+    
+  - If --output_format is set to "fastq", fastq files will be generated instead of fasta + qual files.
   - If identical sequences are being collapsed, mothur-formatted name files (or USEARCH formatted sequence headers) will also be generated.
   - moira.py will replace ':' for '_' in sequence names for compatibility with the mothur pipeline.
 
