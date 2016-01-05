@@ -1,11 +1,11 @@
 #define -NPY_1_7_API_VERSION
 
-#compile with: gcc -fpic -shared -I /usr/include/python2.6/ -o nw_align.so nw_align.c
+#compile with: gcc -fpic -shared -I /usr/include/python2.7/ -o nw_align.so nw_align.c
 
 __author__ = 'Fernando Puente-Sánchez'
 __email__ = 'fpusan@gmail.com'
 __version__ = '1.0'
-__date__ = '11-Aug-2014'
+__date__ = '05-Jan-2016'
 __license__ = 'BSD-3'
 __copyright__ = 'Copyright 2013-2015 Fernando Puente-Sánchez'
 
