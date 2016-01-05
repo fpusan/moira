@@ -153,9 +153,9 @@ Distributed under the GNU General Public License.
 __author__ = 'Fernando Puente-Sánchez'
 __email__ = 'fpusan@gmail.com'
 __version__ = '1.0.2'
-__date__ = '05-Jan-2015'
+__date__ = '05-Jan-2016'
 __license__ = 'BSD-3'
-__copyright__ = 'Copyright 2013-2015 Fernando Puente-Sánchez'
+__copyright__ = 'Copyright 2013-2016 Fernando Puente-Sánchez'
 
 BSD3_LICENSE = """
 
