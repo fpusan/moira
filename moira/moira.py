@@ -181,9 +181,9 @@ BSD3_LICENSE = """
 """
 
 CITATION = """
-Puente-Sánchez F, Aguirre J, Parro V (2014),
-A read-filtering algorithm for high-throughput marker-gene studies that greatly improves OTU accuracy.
-Unpublished.
+Puente-Sánchez F, Aguirre J, Parro V (2015),
+A novel conceptual approach to read-filtering in high-throughput amplicon sequencing studies.
+Nucleic acids research, gkv1113.
 """
 
 
