@@ -101,9 +101,9 @@ static PyMethodDef module_methods[] = {
     {NULL, NULL, 0, NULL}
 };
 
-PyMODINIT_FUNC initbernoulli2(void)
+PyMODINIT_FUNC initbernoulli(void)
 {
-	(void) Py_InitModule("bernoulli2", module_methods);
+	(void) Py_InitModule("bernoulli", module_methods);
 }
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
