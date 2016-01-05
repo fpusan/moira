@@ -14,6 +14,7 @@ The moira.py script and the Poisson binomial filtering algorithm are now describ
 
 which can be accessed online at: https://nar.oxfordjournals.org/content/early/2015/11/06/nar.gkv1113.full
 
+
 REQUIREMENTS:
 
 - Expects that input sequences (single or paired) and qualities are in the same order.
