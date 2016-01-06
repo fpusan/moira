@@ -1,6 +1,0 @@
-#Test with:
-python test_moira.py
-
-moira.py -ffq test1.fastq -rfq test2.fastq --paired
-
-#The expected output files are stored in the test_results folder.
