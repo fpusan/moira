@@ -100,6 +100,11 @@ static PyObject *calculate_errors_PB(PyObject* self, PyObject* args)
 		{
 			return NULL;
 		}
+		///Having qvalues of 0 (happened in artificial datasets) will lead to divisions by zero in the PB error calculation.
+		if (contig_quals [i] == 0)
+		{
+			contig_quals [i] = 1;
+		}
 	}
 	/// Get results.
 	struct tuple results = test(contig, contig_quals, alpha);
