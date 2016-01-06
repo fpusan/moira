@@ -1,4 +1,4 @@
-- v1.0.1.
+- v1.0.2.
   - Updated citation info, ReadMe and moira.py usage information.
   - Updated info in setup.py
   - Added the script README_TEST.sh to facilitate checking that everything is working fine.
