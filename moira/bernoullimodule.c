@@ -4,7 +4,7 @@ email = 'fpusan@gmail.com'
 version = '1.0.2'
 date = '05-Jan-2016'
 license = 'BSD-3'
-copyright = 'Copyright 2013-2016 Fernando Puente-Sánchez'
+copyright = 'Copyright 2013-2016 Fernando Puente-Sánchez's
 
 BSD3_LICENSE = """
 
