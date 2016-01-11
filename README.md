@@ -138,4 +138,4 @@ COMMENTS:
    - Quality-filtering will discard the contigs expected to have more than 'alpha' chances of diverging from the original sequence more than the value specified by the 'uncert' param. That means that, during distance calculation between two given sequences, the observed distance will be at most 'dist + 2\*uncert', where 'dist' is the original distance between those sequences without sequencing errors. Thus, a good rule of thumb would be considering the effective OTU clustering distance to be actually 'OTUdist - 2\*uncert', where OTUdist is the distance used for clustering the observed sequences.
 
 
-Distributed under the BSD license.
+Distributed under the Modified BSD license.
