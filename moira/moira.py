@@ -142,7 +142,7 @@ COMMENTS:
           distance to be actually 'OTUdist - 2*uncert', where OTUdist is the distance used for clustering the observed sequences.
 
 
-Distributed under the GNU General Public License.
+Distributed under the Modified BSD license.
 
 --------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -152,8 +152,8 @@ Distributed under the GNU General Public License.
 
 __author__ = 'Fernando Puente-Sánchez'
 __email__ = 'fpusan@gmail.com'
-__version__ = '1.0.2'
-__date__ = '05-Jan-2016'
+__version__ = '1.0.2b'
+__date__ = '11-Jan-2016'
 __license__ = 'BSD-3'
 __copyright__ = 'Copyright 2013-2016 Fernando Puente-Sánchez'
 
