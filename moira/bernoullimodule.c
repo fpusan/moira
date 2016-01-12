@@ -1,8 +1,8 @@
 /*
 author = 'Fernando Puente-Sánchez'
 email = 'fpusan@gmail.com'
-version = '1.0.2b'
-date = '13-Jan-2016'
+version = '1.0.2'
+date = '05-Jan-2016'
 license = 'BSD-3'
 copyright = 'Copyright 2013-2016 Fernando Puente-Sánchez'
 
