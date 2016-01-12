@@ -15,7 +15,7 @@ setup(
     author_email = 'fpusan@gmail.com',
     url = 'https://github.com/fpusan/moira', # use the URL to the github repo
     download_url = 'https://github.com/fpusan/moira/tarball/v1.0.2b',
-    license = 'BSD',
+    license = 'Modified BSD',
     keywords = ['high-throughput sequencing', 'microbial ecology', '16S analysis', 'marker-gene',
                 'bioinformatics', 'Illumina', '454', 'IonTorrent', 'quality-filtering'],
     classifiers=[
