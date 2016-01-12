@@ -1,3 +1,6 @@
+- v1.0.2b.
+  - Corrected several typos in documentation strings.
+
 - v1.0.2.
   - Updated citation info, ReadMe and moira.py usage information.
   - Updated info in setup.py
