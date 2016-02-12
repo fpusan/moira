@@ -507,17 +507,17 @@ def parse_arguments():
     
     general = parser.add_argument_group('General options')
     general.add_argument('-ff', '--forward_fasta', type = open_input,
-                        help = 'Forward fasta file.')
+                        help = 'Forward fasta file (can be gzip or bzip2 compressed).')
     general.add_argument('-fq', '--forward_qual', type = open_input,
-                        help = 'Forward qual file.')
+                        help = 'Forward qual file (can be gzip or bzip2 compressed).')
     general.add_argument('-rf', '--reverse_fasta', type = open_input,
-                        help = 'Reverse fasta file.')
+                        help = 'Reverse fasta file (can be gzip or bzip2 compressed).')
     general.add_argument('-rq', '--reverse_qual', type = open_input,
-                        help = 'Reverse qual file.')
+                        help = 'Reverse qual file (can be gzip or bzip2 compressed).')
     general.add_argument('-ffq', '--forward_fastq', type= open_input,
-                        help = 'Forward fastq file.')
+                        help = 'Forward fastq file (can be gzip or bzip2 compressed).')
     general.add_argument('-rfq', '--reverse_fastq', type = open_input,
-                        help = 'Forward fastq file.')
+                        help = 'Forward fastq file (can be gzip or bzip2 compressed).')
     general.add_argument('-l', '--relabel', type = str,
                         help = 'Generate sequential labels for the ordered sequences, with the specified string at the beginning.') 
     general.add_argument('-o', '--output_format', type = str, default = 'fasta',
