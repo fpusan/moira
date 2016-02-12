@@ -1503,6 +1503,8 @@ def open_input(filename):
     """
     Make a best-effort guess as to how to open the input file.
     Deals with gzip and bzip2 compressed files.
+
+    Function modified from screed's open_reader
     """
     file_signatures = {
         "\x1f\x8b\x08": "gz",
