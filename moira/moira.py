@@ -152,7 +152,7 @@ Distributed under the Modified BSD license.
 
 __author__ = 'Fernando Puente-Sánchez'
 __email__ = 'fpusan@gmail.com'
-__version__ = '1.0.2b'
+__version__ = '1.0.3'
 __date__ = '13-Jan-2016'
 __license__ = 'BSD-3'
 __copyright__ = 'Copyright 2013-2016 Fernando Puente-Sánchez'
@@ -252,7 +252,7 @@ def main():
     print 
     print 'When using, please cite:'
     print CITATION
-    print 'Distributed under the GNU General Public License.'
+    print 'Distributed under the Revised BSD License.'
     print
     print '-------------------------------------------------------------------------------'
     print
@@ -641,6 +641,9 @@ def check_arguments(args):
             if args.error_calc == 'poisson_binomial' and not Cbernoulli:
                 print '\nC implementation of Poisson binomial filtering algorithm is not present.'
                 print 'Will use pure python implementation instead.\n'
+            #Print other useful info:
+            if (args.reverse_fasta or args.reverse_fastq) and not args.paired:
+                print 'You provided a reverse sequence file, but not the --paired flag. Note that only the forward file will be processed.'
             return ok
         else:
             print '\nFor more info type moira.py -h or moira.py --doc.\n'
