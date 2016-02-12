@@ -208,7 +208,7 @@ import traceback
 import resource
 import io
 import gzip
-import bz2file
+import bz2
 from itertools import izip
 
 #Non stdlib imports.
@@ -1525,7 +1525,7 @@ def open_input(filename):
             break
 
     if compression is 'bz2':
-        return bz2file.BZ2File(filename=bufferedfile)
+        return bz2.BZ2File(filename=filename)
     elif compression is 'gz':
         if not bufferedfile.seekable():
             raise IOError('Unable to stream gzipped data.')
