@@ -206,6 +206,9 @@ import argparse
 from multiprocessing import Pool
 import traceback
 import resource
+import io
+import gzip
+import bz2file
 from itertools import izip
 
 #Non stdlib imports.
@@ -266,19 +269,19 @@ def main():
     #Open and create the necessary files.
     try:
         if args.forward_fastq:
-            forward_fastq_data = open(args.forward_fastq)
+            forward_fastq_data = args.forward_fastq
             output_name = ('.'.join(args.forward_fastq.split('.')[:-1]))
         else:
-            forward_fasta_data = open(args.forward_fasta)
-            forward_qual_data = open(args.forward_qual)
+            forward_fasta_data = args.forward_fasta
+            forward_qual_data = args.forward_qual
             output_name = ('.'.join(args.forward_fasta.split('.')[:-1]))
 
         if args.paired:
             if args.reverse_fastq:
-                reverse_fastq_data = open(args.reverse_fastq)
+                reverse_fastq_data = args.reverse_fastq
             else:
-                reverse_fasta_data = open(args.reverse_fasta)
-                reverse_qual_data = open(args.reverse_qual)
+                reverse_fasta_data = args.reverse_fasta
+                reverse_qual_data = args.reverse_qual
         else:
             reverse_fastq_data, reverse_fasta_data, reverse_qual_data = None, None, None
     
@@ -503,17 +506,17 @@ def parse_arguments():
     parser = argparse.ArgumentParser(description = 'Perform quality filtering on a set of sequences.')
     
     general = parser.add_argument_group('General options')
-    general.add_argument('-ff', '--forward_fasta', type = str,
+    general.add_argument('-ff', '--forward_fasta', type = open_input,
                         help = 'Forward fasta file.')
-    general.add_argument('-fq', '--forward_qual', type = str,
+    general.add_argument('-fq', '--forward_qual', type = open_input,
                         help = 'Forward qual file.')
-    general.add_argument('-rf', '--reverse_fasta', type = str,
+    general.add_argument('-rf', '--reverse_fasta', type = open_input,
                         help = 'Reverse fasta file.')
-    general.add_argument('-rq', '--reverse_qual', type = str,
+    general.add_argument('-rq', '--reverse_qual', type = open_input,
                         help = 'Reverse qual file.')
-    general.add_argument('-ffq', '--forward_fastq', type= str,
+    general.add_argument('-ffq', '--forward_fastq', type= open_input,
                         help = 'Forward fastq file.')
-    general.add_argument('-rfq', '--reverse_fastq', type = str,
+    general.add_argument('-rfq', '--reverse_fastq', type = open_input,
                         help = 'Forward fastq file.')
     general.add_argument('-l', '--relabel', type = str,
                         help = 'Generate sequential labels for the ordered sequences, with the specified string at the beginning.') 
@@ -1487,6 +1490,38 @@ def interpolate(errors1, prob1, errors2, prob2, alpha):
         #Happens only for very-short high qual sequences in which the probability of having 0 errors is higher than 1 - alpha.
         result = 0
     return result
+
+def open_input(filename):
+    """
+    Make a best-effort guess as to how to open the input file.
+    Deals with gzip and bzip2 compressed files.
+    """
+    file_signatures = {
+        "\x1f\x8b\x08": "gz",
+        "\x42\x5a\x68": "bz2",
+    }
+    try:
+        bufferedfile = io.open(file=filename, mode='rb', buffering=8192)
+    except IOError as e:
+        print e
+        print
+        sys.exit(1)
+    num_bytes_to_peek = max(len(x) for x in file_signatures)
+    file_start = bufferedfile.peek(num_bytes_to_peek)
+    compression = None
+    for signature, ftype in file_signatures.items():
+        if file_start.startswith(signature):
+            compression = ftype
+            break
+
+    if compression is 'bz2':
+        return bz2file.BZ2File(filename=bufferedfile)
+    elif compression is 'gz':
+        if not bufferedfile.seekable():
+            raise IOError('Unable to stream gzipped data.')
+        return gzip.GzipFile(filename=filename)
+    else:
+        return bufferedfile
 #
 #
 ################################################################################################################
