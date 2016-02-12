@@ -1,3 +1,7 @@
+- v1.0.3
+  - Corrected license information in the moira.py welcome message.
+  - moira.py will now warn the user if reverse files are provided without adding the --paired flag.
+
 - v1.0.2b.
   - Corrected several typos in documentation strings.
 
