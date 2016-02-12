@@ -45,15 +45,15 @@ OUTPUT:
     - If quality control is being performed, files will be generated with both the sequences that passed the QC and the ones 
       that didn't. A brief report will be included on the headers of the contigs that didn't pass the QC.
 
-        <INPUT_NAME>.qc.good.fasta
-        <INPUT_NAME>.qc.good.qual
-        <INPUT_NAME>.qc.bad.fasta
-        <INPUT_NAME>.qc.bad.qual
+        <PREFIX>.qc.good.fasta
+        <PREFIX>.qc.good.qual
+        <PREFIX>.qc.bad.fasta
+        <PREFIX>.qc.bad.qual
 
     - Else, only two files will be generated.
 
-        <INPUT_NAME>.contigs.fasta
-        <INPUT_NAME>.contigs.qual
+        <PREFIX>.contigs.fasta
+        <PREFIX>.contigs.qual
 
     - If --output_format is set to "fastq", fastq files will be generated instead of fasta + qual files.
     - If identical sequences are being collapsed, mothur-formatted name files (or UPARSE formatted sequence headers) will also be generated.
@@ -267,21 +267,27 @@ def main():
 
     ###############
     #Open and create the necessary files.
+    if args.prefix:
+        output_name = args.prefix
+    else:
+        if args.forward_fastq:
+            output_name = '.'.join(args.forward_fastq.split('.')[:-1])
+        else:
+            output_name = '.'.join(args.forward_fasta.split('.')[:-1])
+
     try:
         if args.forward_fastq:
-            forward_fastq_data = args.forward_fastq
-            output_name = ('.'.join(args.forward_fastq.split('.')[:-1]))
+            forward_fastq_data = open_input(args.forward_fastq)
         else:
-            forward_fasta_data = args.forward_fasta
-            forward_qual_data = args.forward_qual
-            output_name = ('.'.join(args.forward_fasta.split('.')[:-1]))
+            forward_fasta_data = open_input(args.forward_fasta)
+            forward_qual_data = open_input(args.forward_qual)
 
         if args.paired:
             if args.reverse_fastq:
-                reverse_fastq_data = args.reverse_fastq
+                reverse_fastq_data = open_input(args.reverse_fastq)
             else:
-                reverse_fasta_data = args.reverse_fasta
-                reverse_qual_data = args.reverse_qual
+                reverse_fasta_data = open_input(args.reverse_fasta)
+                reverse_qual_data = open_input(args.reverse_qual)
         else:
             reverse_fastq_data, reverse_fasta_data, reverse_qual_data = None, None, None
     
@@ -506,18 +512,20 @@ def parse_arguments():
     parser = argparse.ArgumentParser(description = 'Perform quality filtering on a set of sequences.')
     
     general = parser.add_argument_group('General options')
-    general.add_argument('-ff', '--forward_fasta', type = open_input,
+    general.add_argument('-ff', '--forward_fasta', type = str,
                         help = 'Forward fasta file (can be gzip or bzip2 compressed).')
-    general.add_argument('-fq', '--forward_qual', type = open_input,
+    general.add_argument('-fq', '--forward_qual', type = str,
                         help = 'Forward qual file (can be gzip or bzip2 compressed).')
-    general.add_argument('-rf', '--reverse_fasta', type = open_input,
+    general.add_argument('-rf', '--reverse_fasta', type = str,
                         help = 'Reverse fasta file (can be gzip or bzip2 compressed).')
-    general.add_argument('-rq', '--reverse_qual', type = open_input,
+    general.add_argument('-rq', '--reverse_qual', type = str,
                         help = 'Reverse qual file (can be gzip or bzip2 compressed).')
-    general.add_argument('-ffq', '--forward_fastq', type= open_input,
+    general.add_argument('-ffq', '--forward_fastq', type= str,
                         help = 'Forward fastq file (can be gzip or bzip2 compressed).')
-    general.add_argument('-rfq', '--reverse_fastq', type = open_input,
+    general.add_argument('-rfq', '--reverse_fastq', type = str,
                         help = 'Forward fastq file (can be gzip or bzip2 compressed).')
+    general.add_argument('-pr', '--prefix', type = str,
+                        help = "Prefix for the output files")
     general.add_argument('-l', '--relabel', type = str,
                         help = 'Generate sequential labels for the ordered sequences, with the specified string at the beginning.') 
     general.add_argument('-o', '--output_format', type = str, default = 'fasta',
