@@ -121,6 +121,7 @@ PARAMETERS:
                         USEARCH: output for collapsed sequences will be in a single fasta file, with abundance information stored in the sequence header.
                 --fastq_offset (default 33): ASCII/qscore encoding.
                 --processors (default 1): number of processes to use.
+                --silent: Do not print welcome, progress and goodbye messages. Warnings will still be printed.
 
 COMMENTS:
 
@@ -152,8 +153,8 @@ Distributed under the Modified BSD license.
 
 __author__ = 'Fernando Puente-Sánchez'
 __email__ = 'fpusan@gmail.com'
-__version__ = '1.0.3'
-__date__ = '12-Feb-2016'
+__version__ = '1.1.0'
+__date__ = '16-Feb-2016'
 __license__ = 'BSD-3'
 __copyright__ = 'Copyright 2013-2016 Fernando Puente-Sánchez'
 
@@ -237,31 +238,31 @@ except:
 #Main program flow.
 ################################################################################################################
 
-def main():
+def main(args):
     """Get things done."""
 
     #Be nice and say hello.
-    print
-    print '-------------------------------------------------------------------------------'
-    print
-    print 'moira.py v%s'%__version__
-    print 'Last updated: %s'%__date__
-    print
-    print 'By Fernando Puente-Sánchez'
-    print 'Department of Molecular Evolution'
-    print 'Centro de Astrobiología (CSIC-INTA), Instituto Nacional de Técnica Aeroespacial'
-    print 'fpusan@gmail.com'
-    print 'http://github.com/fpusan/moira'
-    print 
-    print 'When using, please cite:'
-    print CITATION
-    print 'Distributed under the Revised BSD License.'
-    print
-    print '-------------------------------------------------------------------------------'
-    print
+    if not args.silent:
+        print
+        print '-------------------------------------------------------------------------------'
+        print
+        print 'moira.py v%s'%__version__
+        print 'Last updated: %s'%__date__
+        print
+        print 'By Fernando Puente-Sánchez'
+        print 'Department of Molecular Evolution'
+        print 'Centro de Astrobiología (CSIC-INTA), Instituto Nacional de Técnica Aeroespacial'
+        print 'fpusan@gmail.com'
+        print 'http://github.com/fpusan/moira'
+        print 
+        print 'When using, please cite:'
+        print CITATION
+        print 'Distributed under the Revised BSD License.'
+        print
+        print '-------------------------------------------------------------------------------'
+        print
 
     #Parse arguments for command line and check everything's ok.
-    args = parse_arguments()
     if not check_arguments(args):
         return 1
 
@@ -373,7 +374,8 @@ def main():
                 estimated_left = (elapsed / (processed_seqs / input_seqs)- elapsed) / 60
                 msg='Using %.2f MB. %d sequences processed (%.2f%%) in %.1f seconds, %.1f minutes to finish.\r'%(memused, processed_seqs, 
                                                                                                      percent, elapsed, estimated_left)
-                print msg,
+                if not args.silent:
+                    print msg,
             
             #Read data and launch asynchronous processes:
             results = []
@@ -393,8 +395,9 @@ def main():
                     pass
             
             #Exit loop if we've finished:
-            if not results: 
-                print '%d sequences processed in %.1f seconds.'%(processed_seqs, (time.time() - time_start)) + ' '*80
+            if not results:
+                if not args.silent:
+                    print '%d sequences processed in %.1f seconds.'%(processed_seqs, (time.time() - time_start)) + ' '*80
                 break
         
             #Retrieve results from asynchronous processes:
@@ -445,40 +448,41 @@ def main():
                                    
 
         #Be nice and say goodbye.
-        remaining_seqs = processed_seqs - discarded_errors - discarded_length
-        print '- Kept %d (%.2f%%) of the original sequences.'%(remaining_seqs, ((remaining_seqs / processed_seqs) * 100))
-        if args.truncate:
-            print '- %d (%.2f%%) of the original sequences were discarded due to length < %s.'%(discarded_length, (discarded_length / processed_seqs) * 100,
-                                                                                                args.truncate)
-        print '- %d (%.2f%%) of the original sequences were discarded due to low quality.\n'%(discarded_errors, (discarded_errors / processed_seqs) * 100)
-        print 'The following output files were generated:'
-        if args.only_contig:
-            if args.output_format == 'fastq':
-                print '%s.contigs.fastq'%output_name
+        if not args.silent:
+            remaining_seqs = processed_seqs - discarded_errors - discarded_length
+            print '- Kept %d (%.2f%%) of the original sequences.'%(remaining_seqs, ((remaining_seqs / processed_seqs) * 100))
+            if args.truncate:
+                print '- %d (%.2f%%) of the original sequences were discarded due to length < %s.'%(discarded_length, (discarded_length / processed_seqs) * 100,
+                                                                                                    args.truncate)
+            print '- %d (%.2f%%) of the original sequences were discarded due to low quality.\n'%(discarded_errors, (discarded_errors / processed_seqs) * 100)
+            print 'The following output files were generated:'
+            if args.only_contig:
+                if args.output_format == 'fastq':
+                    print '%s.contigs.fastq'%output_name
+                else:
+                    print '%s.contigs.fasta'%output_name
+                    print '%s.contigs.qual'%output_name
+                if args.collapse and args.pipeline == 'mothur':
+                    print '%s.contigs.names\n'%output_name
+                else:
+                    print
             else:
-                print '%s.contigs.fasta'%output_name
-                print '%s.contigs.qual'%output_name
-            if args.collapse and args.pipeline == 'mothur':
-                print '%s.contigs.names\n'%output_name
-            else:
-                print
-        else:
-            if args.output_format == 'fastq':
-                print '%s.qc.good.fastq'%output_name
-            else:
-                print '%s.qc.good.fasta'%output_name
-                print '%s.qc.good.qual'%output_name
-            if args.collapse and args.pipeline == 'mothur':
-                print '%s.qc.good.names'%output_name
-            if args.output_format == 'fastq':
-                print '%s.qc.bad.fastq'%output_name
-            else:   
-                print '%s.qc.bad.fasta'%output_name
-                print '%s.qc.bad.qual'%output_name
-            if args.collapse and args.pipeline == 'mothur':
-                print '%s.qc.bad.names\n'%output_name
-            else:
-                print
+                if args.output_format == 'fastq':
+                    print '%s.qc.good.fastq'%output_name
+                else:
+                    print '%s.qc.good.fasta'%output_name
+                    print '%s.qc.good.qual'%output_name
+                if args.collapse and args.pipeline == 'mothur':
+                    print '%s.qc.good.names'%output_name
+                if args.output_format == 'fastq':
+                    print '%s.qc.bad.fastq'%output_name
+                else:   
+                    print '%s.qc.bad.fasta'%output_name
+                    print '%s.qc.bad.qual'%output_name
+                if args.collapse and args.pipeline == 'mothur':
+                    print '%s.qc.bad.names\n'%output_name
+                else:
+                    print
         ###############
 
     #Tidy your room after you play (even if you kinda broke your toys).
@@ -541,6 +545,8 @@ def parse_arguments():
     general.add_argument('-fo', '--fastq_offset', type = int, default = 33)
     general.add_argument('--only_contig', action = 'store_true',
                         help = 'Assemble contigs but don\'t perform quality control.')
+    general.add_argument('--silent', action = 'store_true',
+                        help = 'Do not print welcome, progress and goodbye messages. Warnings will still be printed.')
     general.add_argument('--doc', action = 'store_true',
                         help = 'Print full documentation.')
  
@@ -1540,4 +1546,4 @@ def open_input(filename):
 ################################################################################################################
     
 if __name__ == '__main__':
-    sys.exit(main())
+    sys.exit(main(parse_arguments()))
