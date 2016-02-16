@@ -55,6 +55,7 @@ OUTPUT:
         <PREFIX>.contigs.fasta
         <PREFIX>.contigs.qual
 
+    - The default prefix is the forward input name without the extension. A custom prefix can be specified with the --output_prefix option.
     - If --output_format is set to "fastq", fastq files will be generated instead of fasta + qual files.
     - If identical sequences are being collapsed, mothur-formatted name files (or UPARSE formatted sequence headers) will also be generated.
     - moira.py will replace ':' for '_' in sequence names for compatibility with the mothur pipeline.
@@ -268,8 +269,8 @@ def main(args):
 
     ###############
     #Open and create the necessary files.
-    if args.prefix:
-        output_name = args.prefix
+    if args.output_prefix:
+        output_name = args.output_prefix
     else:
         if args.forward_fastq:
             output_name = '.'.join(args.forward_fastq.split('.')[:-1])
@@ -528,7 +529,7 @@ def parse_arguments():
                         help = 'Forward fastq file (can be gzip or bzip2 compressed).')
     general.add_argument('-rfq', '--reverse_fastq', type = str,
                         help = 'Forward fastq file (can be gzip or bzip2 compressed).')
-    general.add_argument('-pr', '--prefix', type = str,
+    general.add_argument('-op', '--output_prefix', type = str,
                         help = "Prefix for the output files")
     general.add_argument('-l', '--relabel', type = str,
                         help = 'Generate sequential labels for the ordered sequences, with the specified string at the beginning.') 
