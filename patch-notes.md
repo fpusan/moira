@@ -1,6 +1,10 @@
-- v1.0.3
+- v1.1.0
   - Corrected license information in the moira.py welcome message.
   - moira.py will now warn the user if reverse files are provided without adding the --paired flag.
+  - Fixed a bug in which an additional '>' was inserted at the beginning of sequence headers when using the --relabel option (contributed by Jing Wang, Shanghai Jiao Tong University).
+  - Added support for gzip and bzip2 compressed input files. The script automatically detects the input file type (contributed by Christopher Thornton, University of Utah).
+  - Added the option for choosing a custom output prefix, via the -op, --output_prefix flags (contributed by Christopher Thornton, University of Utah).
+  - Testing can now be directly performed via pip or the setup.py script.
 
 - v1.0.2b.
   - Corrected several typos in documentation strings.
