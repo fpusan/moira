@@ -40,6 +40,8 @@ USAGE:
 
         moira.py --forward_fasta=<FILE> --forward_qual=<FILE>
 
+    - Input files can be compressed with gzip or bzip2.
+
 OUTPUT:
 
     - If quality control is being performed, files will be generated with both the sequences that passed the QC and the ones 
