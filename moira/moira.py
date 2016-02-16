@@ -716,7 +716,7 @@ def write_results(index, header, sequence, quals, expected_errors, names_info, a
     """
 
     if args.relabel:
-        header = '>%s%d'%(args.relabel, index)
+        header = '%s%d'%(args.relabel, index)
     if args.pipeline == 'USEARCH':
         if names_info:
             size = len(names_info)
