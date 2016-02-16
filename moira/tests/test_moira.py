@@ -29,14 +29,48 @@ class TestContigConstructor(unittest.TestCase):
         testSeq2RC, testQual2RC = moira.reverse_complement(testSeq2, testQual2)
         aligned1, aligned2 = nw_align.nw_align(testSeq1, testSeq2RC, args.match, args.mismatch, args.gap)[:2]
         self.assertEqual(moira.make_contig(aligned1, testQual1, aligned2, testQual2RC, args.insert, args.deltaq, args.consensus_qscore), test_contig)
+
         
 class TestProcessing(unittest.TestCase):
-    def testProcessForwardSeqs(self):
+    def testProcessForwardSeq(self):
+        args.truncate = 200
         args.paired = False
         self.assertEqual(moira.process_data('foo', testSeq1, testQual1, None, None, args), test_ForwardProcess)
-    def testProcessPairedSeqs(self):
+    def testProcessPairedSeq(self):
+        args.truncate = 200
         args.paired = True
         self.assertEqual(moira.process_data('foo', testSeq1, testQual1, testSeq2, testQual2, args), test_PairedProcess)
+
+
+class TestFullPipeline(unittest.TestCase):
+    def testProcessForwardDataset(self):
+        args.truncate = None
+        args.paired = False
+        args.forward_fastq = 'test1.fastq'
+        args.output_prefix = 'forward'
+        moira.main(args)
+        self.assertEqual(open('forward.qc.good.fasta').read(), open('test_results/forward.qc.good.fasta').read())
+        self.assertEqual(open('forward.qc.good.qual').read(), open('test_results/forward.qc.good.qual').read())
+        self.assertEqual(open('forward.qc.good.names').read(), open('test_results/forward.qc.good.names').read())
+        self.assertEqual(open('forward.qc.bad.fasta').read(), open('test_results/forward.qc.bad.fasta').read())
+        self.assertEqual(open('forward.qc.bad.qual').read(), open('test_results/forward.qc.bad.qual').read())
+        self.assertEqual(open('forward.qc.bad.names').read(), open('test_results/forward.qc.bad.names').read())
+    def testProcessPairedDataset(self):
+        args.truncate = None
+        args.paired = True
+        args.forward_fastq = 'test1.fastq'
+        args.reverse_fastq = 'test2.fastq'
+        args.output_prefix = 'paired'
+        moira.main(args)
+        self.assertEqual(open('paired.qc.good.fasta').read(), open('test_results/paired.qc.good.fasta').read())
+        self.assertEqual(open('paired.qc.good.qual').read(), open('test_results/paired.qc.good.qual').read())
+        self.assertEqual(open('paired.qc.good.names').read(), open('test_results/paired.qc.good.names').read())
+        self.assertEqual(open('paired.qc.bad.fasta').read(), open('test_results/paired.qc.bad.fasta').read())
+        self.assertEqual(open('paired.qc.bad.qual').read(), open('test_results/paired.qc.bad.qual').read())
+        self.assertEqual(open('paired.qc.bad.names').read(), open('test_results/paired.qc.bad.names').read())
+
+
+    
 
 
 testSeq1 = 'CCTACGGGTGGCAGCAGTAGGGAATATTGCACAATGGGCGAAAGCCTGATGCAGCAACGCCGCGTGCGCGATGAAGGCCTTCGGGTCGTAAAGCGCTTTTTGAGGAGATGAGGAAGGACAGTATCCTCAGAATAAGGATCGGCTAACTACGTGCCAGCAGCCGCGGTAACACGTAGGATCCGAGCGTTATCCGAATTTACTGGGCGTAAAGCGCGTGCAGGCGGTTTGGTAAGTTGGATGTGAAAGCTCCTGGCTCAACTGGGAGAGGCCGTTCAAAACTACCAGACTCGAGGGTGGTTGG'
@@ -52,7 +86,11 @@ test_ForwardProcess = ('foo', 'CCTACGGGTGGCAGCAGTAGGGAATATTGCACAATGGGCGAAAGCCTGA
 test_PairedProcess = ('foo', 'CCTACGGGTGGCAGCAGTAGGGAATATTGCACAATGGGCGAAAGCCTGATGCAGCAACGCCGCGTGCGCGATGAAGGCCTTCGGGTCGTAAAGCGCTTTTTGAGGAGATGAGGAAGGACAGTATCCTCAGAATAAGGATCGGCTAACTACGTGCCAGCAGCCGCGGTAACACGTAGGATCCGAGCGTTATCCGAATTTAC', [21, 23, 33, 34, 34, 38, 38, 38, 38, 33, 32, 35, 34, 33, 33, 34, 37, 38, 38, 38, 38, 38, 38, 38, 38, 38, 38, 38, 38, 38, 38, 38, 38, 38, 38, 38, 38, 38, 38, 38, 38, 38, 38, 38, 38, 38, 38, 38, 38, 38, 38, 38, 38, 38, 38, 38, 38, 38, 38, 38, 38, 38, 38, 38, 38, 38, 38, 38, 38, 38, 37, 36, 38, 38, 38, 38, 38, 38, 38, 38, 38, 38, 38, 38, 38, 38, 38, 37, 38, 38, 37, 38, 38, 38, 38, 38, 38, 38, 37, 38, 38, 38, 38, 38, 38, 37, 38, 37, 36, 38, 37, 38, 38, 38, 38, 38, 38, 38, 38, 38, 38, 38, 38, 38, 38, 38, 38, 38, 38, 38, 38, 38, 38, 38, 34, 38, 38, 38, 38, 38, 38, 38, 38, 38, 38, 38, 38, 38, 38, 38, 38, 38, 35, 22, 29, 34, 36, 37, 38, 38, 37, 34, 38, 31, 31, 37, 36, 36, 37, 24, 35, 27, 36, 38, 38, 38, 36, 37, 27, 34, 38, 38, 34, 36, 36, 38, 25, 36, 36, 37, 30, 24, 37, 36, 38, 38, 38, 38, 38, 38], 0.9643903629780557)
 
 args = Arguments(alpha = 0.005, match = 1, gap = -2, mismatch = -1, insert = 20, deltaq = 6, consensus_qscore = 'best',
-                 paired = True, truncate = 200, only_contig = False, error_calc = 'poisson_binomial', ambigs = 'treat_as_errors', round = False)
+                 paired = True, truncate = 200, only_contig = False, error_calc = 'poisson_binomial', ambigs = 'treat_as_errors',
+                 round = False, silent = True, doc = False, uncert = 0.01, maxerrors = None, processors = 1,
+                 forward_fasta = None, forward_quals = None, reverse_fasta = None, reverse_quals = None,
+                 forward_fastq = None, reverse_fastq = None, output_format = 'fasta', collapse = True, pipeline = 'mothur', fastq_offset = 33,
+                 relabel = None)
 
 if __name__ == '__main__':
     unittest.main()
