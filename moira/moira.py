@@ -42,6 +42,7 @@ USAGE:
 
     - Input files can be compressed with gzip or bzip2.
 
+
 OUTPUT:
 
     - If quality control is being performed, files will be generated with both the sequences that passed the QC and the ones 
