@@ -272,6 +272,7 @@ def main(args):
 
     ###############
     #Open and create the necessary files.
+    open_write, suffix = {'none' : (open, ''), 'gz': (gzip.open, '.gz'), 'bz2': (bzip.open, '.bz2')}[args.output_compression]
     if args.output_prefix:
         output_name = args.output_prefix
     else:
@@ -298,31 +299,31 @@ def main(args):
     
         if args.only_contig:
             if args.output_format == 'fastq':
-                contig_output = open('%s.contigs.fastq'%output_name, 'w')
+                contig_output = open_write('%s.contigs.fastq%s'%(output_name, suffix), 'w')
                 qual_output = None
             else:
-                contig_output = open('%s.contigs.fasta'%output_name, 'w')
-                qual_output = open('%s.contigs.qual'%output_name, 'w')
+                contig_output = open_write('%s.contigs.fasta%s'%(output_name, suffix), 'w')
+                qual_output = open_write('%s.contigs.qual%s'%(output_name, suffix), 'w')
             if args.collapse:
-                names_output = open('%s.contigs.names'%output_name, 'w')
+                names_output = open_write('%s.contigs.names%s'%(output_name, suffix), 'w')
             else:
                 names_output = None
             bad_contig_output, bad_qual_output, bad_names_output = None, None, None
 
         else:
             if args.output_format == 'fastq':
-                contig_output = open('%s.qc.good.fastq'%output_name, 'w')
+                contig_output = open_write('%s.qc.good.fastq%s'%(output_name, suffix), 'w')
                 qual_output = None
-                bad_contig_output = open('%s.qc.bad.fastq'%output_name, 'w')
+                bad_contig_output = open_write('%s.qc.bad.fastq%s'%(output_name, suffix), 'w')
                 bad_qual_output = None
             else:
-                contig_output = open('%s.qc.good.fasta'%output_name, 'w')
-                qual_output = open('%s.qc.good.qual'%output_name, 'w')
-                bad_contig_output = open('%s.qc.bad.fasta'%output_name, 'w')
-                bad_qual_output = open('%s.qc.bad.qual'%output_name, 'w')
+                contig_output = open_write('%s.qc.good.fasta%s'%(output_name, suffix), 'w')
+                qual_output = open_write('%s.qc.good.qual%s'%(output_name, suffix), 'w')
+                bad_contig_output = open_write('%s.qc.bad.fasta%s'%(output_name, suffix), 'w')
+                bad_qual_output = open_write('%s.qc.bad.qual%s'%(output_name, suffix), 'w')
             if args.collapse and args.pipeline == 'mothur':
-                names_output = open('%s.qc.good.names'%output_name, 'w')
-                bad_names_output = open('%s.qc.bad.names'%output_name, 'w')
+                names_output = open_write('%s.qc.good.names%s'%(output_name, suffix), 'w')
+                bad_names_output = open_write('%s.qc.bad.names%s'%(output_name, suffix), 'w')
             else:
                 names_output, bad_names_output = None, None
         
@@ -462,29 +463,29 @@ def main(args):
             print 'The following output files were generated:'
             if args.only_contig:
                 if args.output_format == 'fastq':
-                    print '%s.contigs.fastq'%output_name
+                    print '%s.contigs.fastq%s'%(output_name, suffix)
                 else:
-                    print '%s.contigs.fasta'%output_name
-                    print '%s.contigs.qual'%output_name
+                    print '%s.contigs.fasta%s'%(output_name, suffix)
+                    print '%s.contigs.qual%s'%(output_name, suffix)
                 if args.collapse and args.pipeline == 'mothur':
-                    print '%s.contigs.names\n'%output_name
+                    print '%s.contigs.names%s\n'%(output_name, suffix)
                 else:
                     print
             else:
                 if args.output_format == 'fastq':
-                    print '%s.qc.good.fastq'%output_name
+                    print '%s.qc.good.fastq%s'%(output_name, suffix)
                 else:
-                    print '%s.qc.good.fasta'%output_name
-                    print '%s.qc.good.qual'%output_name
+                    print '%s.qc.good.fasta%s'%(output_name, suffix)
+                    print '%s.qc.good.qual%s'%(output_name, suffix)
                 if args.collapse and args.pipeline == 'mothur':
-                    print '%s.qc.good.names'%output_name
+                    print '%s.qc.good.names%s'%(output_name, suffix)
                 if args.output_format == 'fastq':
-                    print '%s.qc.bad.fastq'%output_name
+                    print '%s.qc.bad.fastq%s'%(output_name, suffix)
                 else:   
-                    print '%s.qc.bad.fasta'%output_name
-                    print '%s.qc.bad.qual'%output_name
+                    print '%s.qc.bad.fasta%s'%(output_name, suffix)
+                    print '%s.qc.bad.qual%s'%(output_name, suffix)
                 if args.collapse and args.pipeline == 'mothur':
-                    print '%s.qc.bad.names\n'%output_name
+                    print '%s.qc.bad.names%s\n'%(output_name, suffix)
                 else:
                     print
         ###############
@@ -532,8 +533,6 @@ def parse_arguments():
                         help = 'Forward fastq file (can be gzip or bzip2 compressed).')
     general.add_argument('-rfq', '--reverse_fastq', type = str,
                         help = 'Forward fastq file (can be gzip or bzip2 compressed).')
-    general.add_argument('-op', '--output_prefix', type = str,
-                        help = "Prefix for the output files")
     general.add_argument('-l', '--relabel', type = str,
                         help = 'Generate sequential labels for the ordered sequences, with the specified string at the beginning.') 
     general.add_argument('-o', '--output_format', type = str, default = 'fasta',
@@ -542,6 +541,11 @@ def parse_arguments():
     general.add_argument('-pi', '--pipeline', type = str, default = 'mothur',
                         choices = ('mothur', 'USEARCH'),
                         help = 'Make the output format compatible with the indicated analysis pipeline.')
+    general.add_argument('-op', '--output_prefix', type = str,
+                        help = "Prefix for the output files")
+    general.add_argument('-oc', '--output_compression', type = str, default = 'none',
+                        choices = ('none', 'gz', 'bz2'),
+                        help = "Prefix for the output files")
     general.add_argument('-p', '--processors', type = int, default = 1,
                         help = 'Number of processors to be used.')
     general.add_argument('--paired', action = 'store_true',
@@ -912,6 +916,41 @@ class EmptyQualError(Exception):
         return 'Error reading file %s. Quality %s was empty'%(repr(self.filename), repr(self.qheader))
 
     
+def open_input(filename):
+    """
+    Make a best-effort guess as to how to open the input file.
+    Deals with gzip and bzip2 compressed files.
+
+    Function modified from screed's open_reader
+    """
+    file_signatures = {
+        "\x1f\x8b\x08": "gz",
+        "\x42\x5a\x68": "bz2",
+    }
+    try:
+        bufferedfile = io.open(file=filename, mode='rb', buffering=8192)
+    except IOError as e:
+        print e
+        print
+        sys.exit(1)
+    num_bytes_to_peek = max(len(x) for x in file_signatures)
+    file_start = bufferedfile.peek(num_bytes_to_peek)
+    compression = None
+    for signature, ftype in file_signatures.items():
+        if file_start.startswith(signature):
+            compression = ftype
+            break
+
+    if compression is 'bz2':
+        return bz2.BZ2File(filename=filename)
+    elif compression is 'gz':
+        if not bufferedfile.seekable():
+            raise IOError('Unable to stream gzipped data.')
+        return gzip.GzipFile(filename=filename)
+    else:
+        return bufferedfile
+
+
 def parse_fasta_and_qual(forward_fasta_data, forward_qual_data, reverse_fasta_data = None, reverse_qual_data = None):
 
     """
@@ -1512,39 +1551,7 @@ def interpolate(errors1, prob1, errors2, prob2, alpha):
         result = 0
     return result
 
-def open_input(filename):
-    """
-    Make a best-effort guess as to how to open the input file.
-    Deals with gzip and bzip2 compressed files.
 
-    Function modified from screed's open_reader
-    """
-    file_signatures = {
-        "\x1f\x8b\x08": "gz",
-        "\x42\x5a\x68": "bz2",
-    }
-    try:
-        bufferedfile = io.open(file=filename, mode='rb', buffering=8192)
-    except IOError as e:
-        print e
-        print
-        sys.exit(1)
-    num_bytes_to_peek = max(len(x) for x in file_signatures)
-    file_start = bufferedfile.peek(num_bytes_to_peek)
-    compression = None
-    for signature, ftype in file_signatures.items():
-        if file_start.startswith(signature):
-            compression = ftype
-            break
-
-    if compression is 'bz2':
-        return bz2.BZ2File(filename=filename)
-    elif compression is 'gz':
-        if not bufferedfile.seekable():
-            raise IOError('Unable to stream gzipped data.')
-        return gzip.GzipFile(filename=filename)
-    else:
-        return bufferedfile
 #
 #
 ################################################################################################################
