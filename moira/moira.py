@@ -272,7 +272,7 @@ def main(args):
 
     ###############
     #Open and create the necessary files.
-    open_write, suffix = {'none' : (open, ''), 'gz': (gzip.open, '.gz'), 'bz2': (bzip.open, '.bz2')}[args.output_compression]
+    open_write, suffix = {'none' : (open, ''), 'gz': (gzip.GzipFile, '.gz'), 'bz2': (bz2.BZ2File, '.bz2')}[args.output_compression]
     if args.output_prefix:
         output_name = args.output_prefix
     else:
