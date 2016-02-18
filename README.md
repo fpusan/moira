@@ -71,6 +71,7 @@ OUTPUT:
    
   - The default prefix is the forward input name without the extension. A custom prefix can be specified with the --output_prefix option. 
   - If --output_format is set to "fastq", fastq files will be generated instead of fasta + qual files.
+  - Output can also be compressed in the gzip or bz2 formats via the --output_compression parameter.
   - If identical sequences are being collapsed, mothur-formatted name files (or USEARCH formatted sequence headers) will also be generated.
   - moira.py will replace ':' for '_' in sequence names for compatibility with the mothur pipeline.
 
