@@ -13,9 +13,7 @@ which can be accessed online at: https://nar.oxfordjournals.org/content/early/20
 
 INSTALLATION INSTRUCTIONS:
 
-- moira is available as a pip-installable python package. To install it just run *pip install moira* in a terminal. Alternatively, download and unzip the tarball and run *python setup.py install*.
-
-- The moira/tests folder includes a basic unit testing script and sample sequences to check that everything is going OK. Just read and run the README_TEST.sh script. If the program is not working in your platform (or everything works, but you have questions anyway) please do not hesitate to contact me at fpusan@gmail.com.
+- moira is available as a pip-installable python package. To install it just run *pip install moira* in a terminal. Alternatively, download and unzip the distribution package and run *python setup.py install test*.
 
 - The moira.py contains the python implementation of the Poisson binomial algorithm. It will perform as a standalone script as described here.
 
@@ -29,6 +27,8 @@ INSTALLATION INSTRUCTIONS:
         gcc -fpic -shared -I /usr/include/python2.7/ -o nw_align.so nw_align.c
 
 - Manual compilation of C extensions is only needed if not using pip or the setup.py install script.
+
+- Testing can be performed by downloading the distribution package (or cloning the github repository) and running *python setup.py test*. A correct installation should pass all tests. In case that the C modules have not been compiled some of the tests will be skipped. Note that the moira.py script will nevertheless be able to run, but it will do so at slower speeds. If the program is not working in your platform (or everything works, but you have questions anyway) please do not hesitate to contact me at fpusan@gmail.com.
 
 
 REQUIREMENTS:
@@ -52,22 +52,24 @@ USAGE:
 
         moira.py --forward_fasta=<FILE> --forward_qual=<FILE>
 
+  - Input files can be compressed with gzip or bzip2. This will be automatically detected by the script.
 
 
 OUTPUT:
 
   - If quality control is being performed, files will be generated with both the sequences that passed the QC and the ones that didn't. A brief report will be included on the headers of the contigs that didn't pass the QC.
 
-        <INPUT_NAME>.qc.good.fasta
-        <INPUT_NAME>.qc.good.qual
-        <INPUT_NAME>.qc.bad.fasta
-        <INPUT_NAME>.qc.bad.qual
+        <PREFIX>.qc.good.fasta
+        <PREFIX>.qc.good.qual
+        <PREFIX>.qc.bad.fasta
+        <PREFIX>.qc.bad.qual
 
   - Else, only two files will be generated.
 
-        <INPUT_NAME>.contigs.fasta
-        <INPUT_NAME>.contigs.qual
-    
+        <PREFIX>.contigs.fasta
+        <PREFIX>.contigs.qual
+   
+  - The default prefix is the forward input name without the extension. A custom prefix can be specified with the --output_prefix option. 
   - If --output_format is set to "fastq", fastq files will be generated instead of fasta + qual files.
   - If identical sequences are being collapsed, mothur-formatted name files (or USEARCH formatted sequence headers) will also be generated.
   - moira.py will replace ':' for '_' in sequence names for compatibility with the mothur pipeline.
@@ -118,12 +120,14 @@ PARAMETERS:
     - --output_format (default fasta):
       - fasta: output files in fasta + qual format.
       - fastq: output files in fastq format.
+    - --output_prefix: Prefix for the output file names.
+    - --output_compression (default none): Compression applied to output files. Can be 'none', 'bz2', or 'gzip'.
     - --pipeline (default mothur):
      - mothur: output for collapsed sequences will be in mothur\'s fasta + names format.
      - USEARCH: output for collapsed sequences will be in a single fasta file, with abundance information stored in the sequence header.
     - --fastq_offset (default 33): ASCII/qscore encoding.
-
     - --processors (default 1): number of processes to use.
+    - --silent: Do not print welcome, progress and goodbye messages. Warnings will still be printed.
 
 
 

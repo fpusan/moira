@@ -1,6 +1,16 @@
 # -*- coding: utf-8 -*-
-from distutils.core import setup, Extension
+from distutils.core import setup, Extension, Command
+import sys, subprocess
 
+class TestMoira(Command):
+    user_options = []
+    def initialize_options(self):
+        pass
+    def finalize_options(self):
+        pass
+    def run(self):
+        errno = subprocess.call([sys.executable, '-m', 'test.test_moira'], cwd = 'moira')
+        raise SystemExit(errno)
 
 
 bernoulli = Extension('bernoulli', sources = ['moira/bernoullimodule.c'])
@@ -9,12 +19,12 @@ nw_align = Extension('nw_align', sources = ['moira/nw_align.c'])
 setup(
     name = 'moira',
     packages = ['moira'],
-    version = 'v1.0.3',
+    version = 'v1.1.0',
     description = 'Quality-filter raw sequence reads using the Poisson binomial filtering algorithm',
     author = 'Fernando Puente-Sánchez',
     author_email = 'fpusan@gmail.com',
     url = 'https://github.com/fpusan/moira', # use the URL to the github repo
-    download_url = 'https://github.com/fpusan/moira/tarball/v1.0.3',
+    download_url = 'https://github.com/fpusan/moira/tarball/v1.1.0',
     license = 'BSD-3',
     keywords = ['high-throughput sequencing', 'microbial ecology', '16S analysis', 'marker-gene',
                 'bioinformatics', 'Illumina', '454', 'IonTorrent', 'quality-filtering'],
@@ -40,4 +50,5 @@ setup(
     ],
     ext_modules = [bernoulli, nw_align],
     scripts = ['moira/moira.py'],
+    cmdclass = {'test': TestMoira}
 )
