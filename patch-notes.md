@@ -5,7 +5,7 @@
   - Fixed a bug in which an additional '>' was inserted at the beginning of sequence headers when using the --relabel option (contributed by Jing Wang, Shanghai Jiao Tong University).
   - Added support for gzip and bzip2 compressed input files. The script automatically detects the input file type (contributed by Christopher Thornton, University of Utah).
   - Added the option for choosing a custom output prefix, via the -op, --output_prefix flags (contributed by Christopher Thornton, University of Utah).
-  - Added the option of producing gzip or bz2 compressed output files.
+  - Added the option of producing gzip or bz2 compressed output files (--output_compression).
   - Added an option for running without printing welcome, progress or goodbye messages, via the --silent flag. Warning messages, if any, will still be printed.
   - Testing can now be directly performed via the setup.py script (python setup.py test).
 
