@@ -690,7 +690,7 @@ def process_data(header, forward_sequence, forward_quals, reverse_sequence, reve
                 forward_aligned, reverse_aligned, score = nw.nw_align(forward_sequence, reverse_sequence,
                                                                  args.match, args.mismatch, args.gap)
             else:
-                forward_aligned, reverse_aligned, score = nw.nw_align(forward_sequence, reverse_sequence,
+                forward_aligned, reverse_aligned, score = nw_align(forward_sequence, reverse_sequence,
                                                                  args.match, args.mismatch, args.gap)
             contig, contig_quals = make_contig(forward_aligned, forward_quals, reverse_aligned, reverse_quals,
                                                args.insert, args.deltaq, args.consensus_qscore)
