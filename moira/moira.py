@@ -120,6 +120,8 @@ PARAMETERS:
                 --output_format (default fasta):
                         fasta: output files in fasta + qual format.
                         fastq: output files in fastq format.
+                --output_prefix: Prefix for the output file names.
+                --output_compression (default none): Compression applied to output files. Can be 'none', 'bz2', or 'gzip'.
                 --pipeline (default mothur):
                         mothur: output for collapsed sequences will be in mothur\'s fasta + names format.
                         USEARCH: output for collapsed sequences will be in a single fasta file, with abundance information stored in the sequence header.
