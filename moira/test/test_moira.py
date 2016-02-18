@@ -1,7 +1,21 @@
 import unittest
-from moira import moira
+try:
+    from moira import moira
+except ImportError as e:
+    print e
+    print 'moira does not appear to be installed yet. Try running "python setup.py install test".'
+    import sys; sys.exit(0)
 import bernoulli
 import nw_align
+import gzip
+import bz2
+import os
+
+try: 
+    os.makedirs('test_output')
+except OSError:
+    if not os.path.isdir('test_output'):
+        raise
 
 
 class Arguments():
@@ -47,30 +61,44 @@ class TestFullPipeline(unittest.TestCase):
         args.truncate = None
         args.paired = False
         args.forward_fastq = 'test1.fastq'
-        args.output_prefix = 'forward'
+        args.reverse_fastq = None
+        args.output_prefix = 'test_output/forward'
+        args.output_compression = 'none'
         moira.main(args)
-        self.assertEqual(open('forward.qc.good.fasta').read(), open('test_results/forward.qc.good.fasta').read())
-        self.assertEqual(open('forward.qc.good.qual').read(), open('test_results/forward.qc.good.qual').read())
-        self.assertEqual(open('forward.qc.good.names').read(), open('test_results/forward.qc.good.names').read())
-        self.assertEqual(open('forward.qc.bad.fasta').read(), open('test_results/forward.qc.bad.fasta').read())
-        self.assertEqual(open('forward.qc.bad.qual').read(), open('test_results/forward.qc.bad.qual').read())
-        self.assertEqual(open('forward.qc.bad.names').read(), open('test_results/forward.qc.bad.names').read())
+        self.assertEqual(open('test_output/forward.qc.good.fasta').read(), open('test_results/forward.qc.good.fasta').read())
+        self.assertEqual(open('test_output/forward.qc.good.qual').read(), open('test_results/forward.qc.good.qual').read())
+        self.assertEqual(open('test_output/forward.qc.good.names').read(), open('test_results/forward.qc.good.names').read())
+        self.assertEqual(open('test_output/forward.qc.bad.fasta').read(), open('test_results/forward.qc.bad.fasta').read())
+        self.assertEqual(open('test_output/forward.qc.bad.qual').read(), open('test_results/forward.qc.bad.qual').read())
+        self.assertEqual(open('test_output/forward.qc.bad.names').read(), open('test_results/forward.qc.bad.names').read())
     def testProcessPairedDataset(self):
         args.truncate = None
         args.paired = True
         args.forward_fastq = 'test1.fastq'
         args.reverse_fastq = 'test2.fastq'
-        args.output_prefix = 'paired'
+        args.output_prefix = 'test_output/paired'
+        args.output_compression = 'none'
         moira.main(args)
-        self.assertEqual(open('paired.qc.good.fasta').read(), open('test_results/paired.qc.good.fasta').read())
-        self.assertEqual(open('paired.qc.good.qual').read(), open('test_results/paired.qc.good.qual').read())
-        self.assertEqual(open('paired.qc.good.names').read(), open('test_results/paired.qc.good.names').read())
-        self.assertEqual(open('paired.qc.bad.fasta').read(), open('test_results/paired.qc.bad.fasta').read())
-        self.assertEqual(open('paired.qc.bad.qual').read(), open('test_results/paired.qc.bad.qual').read())
-        self.assertEqual(open('paired.qc.bad.names').read(), open('test_results/paired.qc.bad.names').read())
+        self.assertEqual(open('test_output/paired.qc.good.fasta').read(), open('test_results/paired.qc.good.fasta').read())
+        self.assertEqual(open('test_output/paired.qc.good.qual').read(), open('test_results/paired.qc.good.qual').read())
+        self.assertEqual(open('test_output/paired.qc.good.names').read(), open('test_results/paired.qc.good.names').read())
+        self.assertEqual(open('test_output/paired.qc.bad.fasta').read(), open('test_results/paired.qc.bad.fasta').read())
+        self.assertEqual(open('test_output/paired.qc.bad.qual').read(), open('test_results/paired.qc.bad.qual').read())
+        self.assertEqual(open('test_output/paired.qc.bad.names').read(), open('test_results/paired.qc.bad.names').read())
+    def testCompression(self):
+        args.truncate = None
+        args.paired = True
+        args.forward_fastq = 'test1.fastq.gz'
+        args.reverse_fastq = 'test2.fastq.bz2'
+        args.output_prefix = 'test_output/paired'
+        args.output_compression = 'gz'
+        moira.main(args)
+        self.assertEqual(gzip.GzipFile('test_output/paired.qc.good.fasta.gz').read(), open('test_results/paired.qc.good.fasta').read())        
+        args.output_compression = 'bz2'
+        moira.main(args)
+        self.assertEqual(bz2.BZ2File('test_output/paired.qc.good.fasta.bz2').read(), open('test_results/paired.qc.good.fasta').read())
 
 
-    
 
 
 testSeq1 = 'CCTACGGGTGGCAGCAGTAGGGAATATTGCACAATGGGCGAAAGCCTGATGCAGCAACGCCGCGTGCGCGATGAAGGCCTTCGGGTCGTAAAGCGCTTTTTGAGGAGATGAGGAAGGACAGTATCCTCAGAATAAGGATCGGCTAACTACGTGCCAGCAGCCGCGGTAACACGTAGGATCCGAGCGTTATCCGAATTTACTGGGCGTAAAGCGCGTGCAGGCGGTTTGGTAAGTTGGATGTGAAAGCTCCTGGCTCAACTGGGAGAGGCCGTTCAAAACTACCAGACTCGAGGGTGGTTGG'
@@ -90,7 +118,7 @@ args = Arguments(alpha = 0.005, match = 1, gap = -2, mismatch = -1, insert = 20,
                  round = False, silent = True, doc = False, uncert = 0.01, maxerrors = None, processors = 1,
                  forward_fasta = None, forward_quals = None, reverse_fasta = None, reverse_quals = None,
                  forward_fastq = None, reverse_fastq = None, output_format = 'fasta', collapse = True, pipeline = 'mothur', fastq_offset = 33,
-                 relabel = None)
+                 relabel = None, output_compression = 'none')
 
 if __name__ == '__main__':
     unittest.main()
