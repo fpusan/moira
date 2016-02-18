@@ -1,0 +1,11 @@
+include setup.cfg
+include setup.py
+include LICENSE
+include README.md
+include patch-notes.md
+include MANIFEST.in
+include moira/__init__.py
+include moira/bernoullimodule.c
+include moira/moira.py
+include moira/nw_align.c
+graft moira/test
