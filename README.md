@@ -46,7 +46,7 @@ USAGE:
 
   - Make contigs from paired reads (fastq) and perform quality-filtering, output results in fastq format:
 
-        moira.py --forward_fastq=<FILE> --reverse_fastq=<FILE> --paired --output_format fastq
+        moira.py --forward_fastq=<FILE> --reverse_fastq=<FILE> --paired --consensus_qscore posterior --output_format fastq
 
   - Quality-filter already assembled contigs or single reads:
 
@@ -88,8 +88,9 @@ PARAMETERS:
    - --insert (default 20): quality above which a base will be used for filling a complementary gap or ambiguity.
    - --deltaq (default 6): minimum quality difference allowed between two mismatched bases for not including an N in the consensus sequence.
    - --consensus_qscore (default 'best')
-   - --best: use the best quality on each position of the alignment as the consensus quality score (Unless an ambiguity is introduced in that position by the contig constructor. In that case, quality score will be always 2).
-   - - --sum: in matching bases, consensus quality score will be the sum of the qualities of both reads in that position of the alignment.
+     - best: use the best quality on each position of the alignment as the consensus quality score (Unless an ambiguity is introduced in that position by the contig constructor. In that case, the reported quality score will be always 2.
+     - sum: in matching bases, consensus quality score will be the sum of the qualities of both reads in that position of the alignment.
+     - posterior: use Edgar & Flyvbjerg's (2015) method for calculating consensus quality scores. The insert and deltaq parameters will be ignored. Ambiguities will only be introduced when two mismatched bases have exactly the same quality score. In that case, the reported quality score will be always 2.
 
   - Quality-filtering parameters:
     - --collapse (default True): if True, identical sequences will be collapsed before quality control, and the one with the best quality will be used as a representative of the whole group.
@@ -131,12 +132,13 @@ PARAMETERS:
     - --silent: Do not print welcome, progress and goodbye messages. Warnings will still be printed.
 
 
-
 COMMENTS:
 
    - Alignment parameters are set to replicate mothur's default implementation of the Needleman-Wunsch algorithm.
 
-   - The 'insert' and 'deltaq' parameters from mothur make.contig are also reproduced. They are set at their default values. More details can be found at www.mothur.org/wiki/Make.contigs.
+   - The 'insert' and 'deltaq' parameters from mothur make.contig are also reproduced. They are set at their default values. More details can be found at www.mothur.org/wiki/Make.contigs. They will be applied only if the --consensus_qscore parameter is set to 'best' or 'sum'. However, we no longer recommend to use these options.
+
+    - Instead, we now recommend to calculate posterior error probabilities for reporting consensus quality scores, as described by Edgar & Flyvbjerg (2015). This can be achieved by adding the '--consensus_qscore posterior' or '-q posterior flags', as shown in the example above.
 
    - Approximating the sum of bernoulli random variables to a poisson distribution is quicker than calculating their exact sum (Poisson binomial distribution). It proves specially useful for long reads (>500 nt). That said, the Poisson binomial filtering algorithm is also implemented in C and even the python implementation is quick enough or processing large datasets. The bootstrap method (--error_calc bootstrap) is a numerical algorithm for performing the sum of bernoulli random variables. It is only included for testing purposes.
 
