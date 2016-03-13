@@ -83,6 +83,7 @@ PARAMETERS:
                               be always 2).
                         sum: in matching bases, consensus quality score will be the sum of the qualities of both reads in that
                              position of the alignment.
+                        posterior: use Edgar & Flyvbjerg's (2015) method for calculating consensus quality scores.
 
         - Quality-filtering parameters:
 
@@ -572,8 +573,8 @@ def parse_arguments():
     constructor.add_argument('-d', '--deltaq', type = int, default = 6,
                         help = 'Contig constructor mismatch correction deltaq threshold.')
     constructor.add_argument('-q', '--consensus_qscore', type = str, default = 'best',
-                        choices = ('best', 'sum'),
-                        help = 'Contig constructor consensus qscore: always report best qscore, sum qscores for matching bases')
+                        choices = ('best', 'sum', 'posterior'),
+                        help = 'Contig constructor consensus qscore: always report best qscore, sum qscores for matching bases, report posterior qscores.')
 
     filtering = parser.add_argument_group('Sequence filtering options')
     filtering.add_argument('-c', '--collapse', type = str2bool, default = 'True',
@@ -1254,6 +1255,12 @@ def make_contig(forward_aligned, forward_quals, reverse_aligned, reverse_quals, 
     the greatest quality score will be returned.
     """
 
+    def qual2prob(qual):
+        return 10 ** (qual / (-10.0))
+
+    def prob2qual(prob):
+        return -10 * math.log10(prob)
+
     ###Check parameters:
     forward_aligned = str(forward_aligned)
     forward_quals = map(int, list(forward_quals))
@@ -1261,8 +1268,8 @@ def make_contig(forward_aligned, forward_quals, reverse_aligned, reverse_quals, 
     reverse_quals = map(int, list(reverse_quals))
     insert = int(insert)
     deltaq = int(deltaq)
-    if consensus_qscore not in ('best', 'sum'):
-        raise ValueError('consensus_qscore must be either "best" or "sum".')
+    if consensus_qscore not in ('best', 'sum', 'posterior'):
+        raise ValueError('consensus_qscore must be "best", "sum" or "posterior".')
     if len(forward_aligned.replace('-', '')) != len(forward_quals):
         raise LengthMismatchError
     if len(reverse_aligned.replace('-', '')) != len(reverse_quals):
@@ -1272,6 +1279,10 @@ def make_contig(forward_aligned, forward_quals, reverse_aligned, reverse_quals, 
     if deltaq < 0:
         raise ValueError('deltaq must be a positive integer')
     ###
+
+    #Ignore --insert parameter if consensus_qscore == 'posterior'.
+    if consensus_qscore == 'posterior':
+        insert = 1
 
     #Fit the qualities into the alignment.
     forward_quals_aligned = []
@@ -1359,22 +1370,41 @@ def make_contig(forward_aligned, forward_quals, reverse_aligned, reverse_quals, 
                 contig.append(forward_aligned[position])
                 if consensus_qscore == 'sum':
                     contig_quals.append(forward_quals_aligned[position] + reverse_quals_aligned[position])
+                elif consensus_qscore == 'posterior':
+                    p1, p2 = qual2prob(forward_quals_aligned[position]), qual2prob(reverse_quals_aligned[position])
+                    post_prob = (p1 * p2 / 3) / (1 - p1 - p2 + (4 * p1 * p2 / 3))
+                    contig_quals.append(math.floor(prob2qual(post_prob)))
                 elif forward_quals_aligned[position] >= reverse_quals_aligned[position]:
                     contig_quals.append(forward_quals_aligned[position])
                 else:
                     contig_quals.append(reverse_quals_aligned[position])
 
             else:
-                if abs(forward_quals_aligned[position] - reverse_quals_aligned[position]) < deltaq:
-                    contig.append('N')
-                    contig_quals.append(2)
-                else:
-                    if forward_quals_aligned[position] >= reverse_quals_aligned[position]:
-                        contig.append(forward_aligned[position])
-                        contig_quals.append(forward_quals_aligned[position])
+                if consensus_qscore in ('best', 'sum'):
+                    if abs(forward_quals_aligned[position] - reverse_quals_aligned[position]) < deltaq:
+                        contig.append('N')
+                        contig_quals.append(2)
                     else:
-                        contig.append(reverse_aligned[position])
-                        contig_quals.append(reverse_quals_aligned[position])    
+                        if forward_quals_aligned[position] >= reverse_quals_aligned[position]:
+                            contig.append(forward_aligned[position])
+                            contig_quals.append(forward_quals_aligned[position])
+                        else:
+                            contig.append(reverse_aligned[position])
+                            contig_quals.append(reverse_quals_aligned[position])
+                else: #consensus_qscore == 'posterior'
+                    if forward_quals_aligned[position] == reverse_quals_aligned[position]:
+                        contig.append('N')
+                        contig_quals.append(2)
+                    else:
+                        if forward_quals_aligned[position] > reverse_quals_aligned[position]:
+                            p1, p2 = qual2prob(forward_quals_aligned[position]), qual2prob(reverse_quals_aligned[position])
+                            contig.append(forward_aligned[position])
+                        else:
+                            p2, p1 = qual2prob(forward_quals_aligned[position]), qual2prob(reverse_quals_aligned[position])
+                            contig.append(reverse_aligned[position])
+                        post_prob = p1 * (1 - p2 / 3) / (p1 + p2 - (4 * p1 * p2 / 3))
+                        contig_quals.append(math.floor(prob2qual(post_prob)))
+                        
     
     return ''.join(contig), contig_quals
 
