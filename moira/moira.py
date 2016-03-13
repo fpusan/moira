@@ -34,7 +34,7 @@ USAGE:
 
     - Make contigs from paired reads (fastq) and perform quality-filtering, output results in fastq format:
 
-        moira.py --forward_fastq=<FILE> --reverse_fastq=<FILE> --paired --output_format fastq
+        moira.py --forward_fastq=<FILE> --reverse_fastq=<FILE> --paired --consensus_qscore posterior --output_format fastq
 
     - Quality-filter already assembled contigs or single reads:
 
@@ -83,7 +83,9 @@ PARAMETERS:
                               be always 2).
                         sum: in matching bases, consensus quality score will be the sum of the qualities of both reads in that
                              position of the alignment.
-                        posterior: use Edgar & Flyvbjerg's (2015) method for calculating consensus quality scores.
+                        posterior: use Edgar & Flyvbjerg's (2015) method for calculating consensus quality scores. The insert and deltaq
+                             parameters will be ignored. Ambiguities will only be introduced when two mismatched bases have exactly
+                             the same quality score. In that case, quality score will be always 2).
 
         - Quality-filtering parameters:
 
@@ -135,7 +137,11 @@ COMMENTS:
         - Alignment parameters are set to replicate mothur's default implementation of the Needleman-Wunsch algorithm.
 
         - The 'insert' and 'deltaq' parameters from mothur make.contig are also reproduced. They are set at their default values.
-          More details can be found at www.mothur.org/wiki/Make.contigs
+          More details can be found at www.mothur.org/wiki/Make.contigs. They will be applied only if the --consensus_qscore parameter is
+          set to 'best' or 'sum'. However, we no longer recommend to use these contig construction methods.
+
+        - Instead, we now recommend to calculate posterior error probabilities for reporting consensus quality scores, as described by Edgar &
+          Flyvbjerg (2015). This can be achieved by adding the --consensus_qscore posterior or -q posterior flags, as shown in the example above.
 
         - Approximating the sum of bernoulli random variables to a poisson distribution is quicker than calculating 
           their exact sum (Poisson binomial distribution). It proves specially useful for long reads (>500 nt).
