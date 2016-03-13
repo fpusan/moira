@@ -79,13 +79,13 @@ PARAMETERS:
                                       in the consensus sequence.
                 --consensus_qscore (default 'best')
                         best: use the best quality on each position of the alignment as the consensus quality score (Unless an 
-                              ambiguity is introduced in that position by the contig constructor. In that case, quality score will 
-                              be always 2).
+                              ambiguity is introduced in that position by the contig constructor. In that case, the reported quality
+                              score will be always 2).
                         sum: in matching bases, consensus quality score will be the sum of the qualities of both reads in that
                              position of the alignment.
                         posterior: use Edgar & Flyvbjerg's (2015) method for calculating consensus quality scores. The insert and deltaq
                              parameters will be ignored. Ambiguities will only be introduced when two mismatched bases have exactly
-                             the same quality score. In that case, quality score will be always 2).
+                             the same quality score. In that case, the reported quality score will be always 2.
 
         - Quality-filtering parameters:
 
@@ -166,8 +166,8 @@ Distributed under the Modified BSD license.
 
 __author__ = 'Fernando Puente-Sánchez'
 __email__ = 'fpusan@gmail.com'
-__version__ = '1.1.0'
-__date__ = '16-Feb-2016'
+__version__ = '1.2.0'
+__date__ = '13-Mar-2016'
 __license__ = 'BSD-3'
 __copyright__ = 'Copyright 2013-2016 Fernando Puente-Sánchez'
 
@@ -678,6 +678,15 @@ def check_arguments(args):
             #Print other useful info:
             if (args.reverse_fasta or args.reverse_fastq) and not args.paired:
                 print 'You provided a reverse sequence file, but not the --paired flag. Note that only the forward file will be processed.'
+                print
+            if args.paired and args.consensus_qscore != 'posterior':
+                print 'The "%s" method for calculating consensus quality scores is no longer recommended.'%args.consensus_qscore
+                print 'Please consider running the script with the "-q posterior" flag instead. See documentation for details'
+                print
+            if args.error_calc == 'bootstrap':
+                print 'The bootstrap method is only included for testing and nostalgia. Mainly the second, at this point.'
+                print 'If your purpose falls outside of these two categories, please consider switching to "-e poisson_binomial" or "-e poisson".'
+                print
             return ok
         else:
             print '\nFor more info type moira.py -h or moira.py --doc.\n'
@@ -722,7 +731,7 @@ def process_data(header, forward_sequence, forward_quals, reverse_sequence, reve
             elif args.error_calc == 'poisson':
                 expected_errors, Ns = calculate_errors_poisson(contig, contig_quals, args.alpha)
             else:#qmode == 'bootstrap':
-                expected_errors, Ns = calculate_errors_bootstrap(contig, contig_quals, alpha, bootstrap)
+                expected_errors, Ns = calculate_errors_bootstrap(contig, contig_quals, args.alpha, args.bootstrap)
         
             if args.ambigs == 'treat_as_errors':
                 expected_errors = expected_errors + Ns
