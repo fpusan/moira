@@ -141,7 +141,7 @@ COMMENTS:
           set to 'best' or 'sum'. However, we no longer recommend to use these contig construction methods.
 
         - Instead, we now recommend to calculate posterior error probabilities for reporting consensus quality scores, as described by Edgar &
-          Flyvbjerg (2015). This can be achieved by adding the --consensus_qscore posterior or -q posterior flags, as shown in the example above.
+          Flyvbjerg (2015). This can be achieved by adding the '--consensus_qscore posterior' or '-q posterior flags', as shown in the example above.
 
         - Approximating the sum of bernoulli random variables to a poisson distribution is quicker than calculating 
           their exact sum (Poisson binomial distribution). It proves specially useful for long reads (>500 nt).
