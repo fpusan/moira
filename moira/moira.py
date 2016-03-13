@@ -263,8 +263,10 @@ def main(args):
         print 'Last updated: %s'%__date__
         print
         print 'By Fernando Puente-Sánchez'
-        print 'Department of Molecular Evolution'
-        print 'Centro de Astrobiología (CSIC-INTA), Instituto Nacional de Técnica Aeroespacial'
+        print '- Department of Molecular Evolution'
+        print '  Centro de Astrobiología (CSIC-INTA), Instituto Nacional de Técnica Aeroespacial'
+        print '- Systems Biology Program'
+        print '  Centro Nacional de Biotecnología (CSIC)'
         print 'fpusan@gmail.com'
         print 'http://github.com/fpusan/moira'
         print 
