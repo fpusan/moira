@@ -1,3 +1,10 @@
+- v1.2.0
+  - Added support for posterior consensus qscore calculation during conting construction, as described by Edgar & Flyvbjerg (2015).
+  - Coupling this to our PBF algorithm is now the recommended method for analysing paired end reads. This can be achieved by using the "--paired" and "-q posterior" flags.
+  - The documentation and examples have been updated to reflect this.
+  - The script will now print warning messages when using deprecated options.
+  - Fixed an error that raised when using the -e bootstrap flag.
+
 - v1.1.0
   - Corrected license information in the moira.py welcome message.
   - Fixed a bug in which the script was not falling back to the pure python implementation of the Needleman-Wunsch algorithm if the cython version was not present.

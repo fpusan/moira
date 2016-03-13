@@ -19,7 +19,7 @@ nw_align = Extension('nw_align', sources = ['moira/nw_align.c'])
 setup(
     name = 'moira',
     packages = ['moira'],
-    version = 'v1.1.0',
+    version = 'v1.2.0',
     description = 'Quality-filter raw sequence reads using the Poisson binomial filtering algorithm',
     author = 'Fernando Puente-Sánchez',
     author_email = 'fpusan@gmail.com',
