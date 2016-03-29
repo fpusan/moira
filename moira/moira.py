@@ -583,7 +583,8 @@ def parse_arguments():
     constructor.add_argument('-q', '--consensus_qscore', type = str, default = 'best',
                         choices = ('best', 'sum', 'posterior'),
                         help = 'Contig constructor consensus qscore: always report best qscore, sum qscores for matching bases, report posterior qscores.')
-
+    constructor.add_argument('-z', '--qscore_cap', type = int, default = 40,
+                        help = 'Maximum consensus quality score reported by the contig constructor. Use 0 for removing the qscore cap.')
     filtering = parser.add_argument_group('Sequence filtering options')
     filtering.add_argument('-c', '--collapse', type = str2bool, default = 'True',
                         help = 'Collapse identical sequences before quality control.')
@@ -711,7 +712,7 @@ def process_data(header, forward_sequence, forward_quals, reverse_sequence, reve
                 forward_aligned, reverse_aligned, score = nw_align(forward_sequence, reverse_sequence,
                                                                  args.match, args.mismatch, args.gap)
             contig, contig_quals = make_contig(forward_aligned, forward_quals, reverse_aligned, reverse_quals,
-                                               args.insert, args.deltaq, args.consensus_qscore)
+                                               args.insert, args.deltaq, args.consensus_qscore, args.qscore_cap)
             ###
         else:
             contig, contig_quals = forward_sequence, forward_quals
@@ -1256,7 +1257,7 @@ def nw_overlap(score_matrix, pointer_matrix):
             pointer_matrix[-1][j] = 0, -1
 
 
-def make_contig(forward_aligned, forward_quals, reverse_aligned, reverse_quals, insert, deltaq, consensus_qscore):
+def make_contig(forward_aligned, forward_quals, reverse_aligned, reverse_quals, insert, deltaq, consensus_qscore, qscore_cap):
 
     """
     Build a contig from two aligned reads and their corresponding quality scores.
@@ -1291,15 +1292,13 @@ def make_contig(forward_aligned, forward_quals, reverse_aligned, reverse_quals, 
         raise LengthMismatchError
     if len(reverse_aligned.replace('-', '')) != len(reverse_quals):
         raise LengthMismatchError
-    if insert < 0:
+    if insert <= 0:
         raise ValueError('insert must be a positive integer')
-    if deltaq < 0:
+    if deltaq <= 0:
         raise ValueError('deltaq must be a positive integer')
+    if qscore_cap < 0:
+        raise ValueError('qscore_cap must be a non-negative integer')
     ###
-
-    #Ignore --insert parameter if consensus_qscore == 'posterior'.
-    if consensus_qscore == 'posterior':
-        insert = 1
 
     #Fit the qualities into the alignment.
     forward_quals_aligned = []
@@ -1422,6 +1421,8 @@ def make_contig(forward_aligned, forward_quals, reverse_aligned, reverse_quals, 
                         post_prob = p1 * (1 - p2 / 3) / (p1 + p2 - (4 * p1 * p2 / 3))
                         contig_quals.append(math.floor(prob2qual(post_prob)))
                         
+    if qscore_cap:
+        contig_quals = [qual if qual < qscore_cap else qscore_cap for qual in quals]
     
     return ''.join(contig), contig_quals
 
