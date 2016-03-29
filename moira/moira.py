@@ -1369,14 +1369,20 @@ def make_contig(forward_aligned, forward_quals, reverse_aligned, reverse_quals, 
                 contig_quals.append(reverse_quals_aligned[position])
         else:
             if forward_aligned[position] == '-':
-                if int(reverse_quals_aligned[position]) > insert:
+                if consensus_qscore == 'posterior':
+                    contig_append('N')
+                    contig_quals.append(2)
+                elif int(reverse_quals_aligned[position]) > insert:
                     contig.append(reverse_aligned[position])
                     contig_quals.append(reverse_quals_aligned[position])
                 else:
                     pass
 
             elif reverse_aligned[position] == '-':
-                if int(forward_quals_aligned[position]) > insert:
+                if consensus_qscore == 'posterior':
+                    contig_append('N')
+                    contig_quals.append(2)
+                elif int(forward_quals_aligned[position]) > insert:
                     contig.append(forward_aligned[position])
                     contig_quals.append(forward_quals_aligned[position])
                 else:
