@@ -1422,7 +1422,7 @@ def make_contig(forward_aligned, forward_quals, reverse_aligned, reverse_quals, 
                         contig_quals.append(math.floor(prob2qual(post_prob)))
                         
     if qscore_cap:
-        contig_quals = [qual if qual < qscore_cap else qscore_cap for qual in quals]
+        contig_quals = [qual if qual < qscore_cap else qscore_cap for qual in contig_quals]
     
     return ''.join(contig), contig_quals
 
