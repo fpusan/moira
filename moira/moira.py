@@ -84,8 +84,10 @@ PARAMETERS:
                         sum: in matching bases, consensus quality score will be the sum of the qualities of both reads in that
                              position of the alignment.
                         posterior: use Edgar & Flyvbjerg's (2015) method for calculating consensus quality scores. The insert and deltaq
-                             parameters will be ignored. Ambiguities will only be introduced when two mismatched bases have exactly
+                             parameters will be ignored. Ambiguities will be introduced in gaps, or if two mismatched bases have exactly
                              the same quality score. In that case, the reported quality score will be always 2.
+                --qscore_cap (default 40): Maximum consensus quality score to report. Higher consensus quality scores will be trimmed to
+                             the value of --qscore_cap. Setting it to 0 will remove the cap.
 
         - Quality-filtering parameters:
 
@@ -138,10 +140,11 @@ COMMENTS:
 
         - The 'insert' and 'deltaq' parameters from mothur make.contig are also reproduced. They are set at their default values.
           More details can be found at www.mothur.org/wiki/Make.contigs. They will be applied only if the --consensus_qscore parameter is
-          set to 'best' or 'sum'. However, we no longer recommend to use these contig construction methods.
+          set to 'best' or 'sum'.
 
-        - Instead, we now recommend to calculate posterior error probabilities for reporting consensus quality scores, as described by Edgar &
-          Flyvbjerg (2015). This can be achieved by adding the '--consensus_qscore posterior' or '-q posterior flags', as shown in the example above.
+        - We now provide the option to calculate posterior error probabilities for reporting consensus quality scores, as described by Edgar &
+          Flyvbjerg (2015). This can be achieved by adding the '--consensus_qscore posterior' or '-q posterior' flags, as shown in the example above.
+          This method is theoretically sound and performed generally better than our previous approach when tested with mock community data.
 
         - Approximating the sum of bernoulli random variables to a poisson distribution is quicker than calculating 
           their exact sum (Poisson binomial distribution). It proves specially useful for long reads (>500 nt).
@@ -566,6 +569,8 @@ def parse_arguments():
                         help = 'Assemble contigs but don\'t perform quality control.')
     general.add_argument('--silent', action = 'store_true',
                         help = 'Do not print welcome, progress and goodbye messages. Warnings will still be printed.')
+    general.add_argument('--nowarnings', action = 'store_true',
+                        help = 'Do not print warning messages.')
     general.add_argument('--doc', action = 'store_true',
                         help = 'Print full documentation.')
  
@@ -635,64 +640,81 @@ def check_arguments(args):
             args.paired = True
         else:
             if not args.forward_fastq and (not args.forward_fasta or not args.forward_qual):
-                print '- You must at least provide one fastq file, or a fasta and quality files.'
+                if not args.nowarning:
+                    print '- You must at least provide one fastq file, or a fasta and quality files.'
                 ok = False
             if args.paired:
                 if not args.reverse_fastq and (not args.reverse_fasta or not args.reverse_qual):
-                    print '- You must provide one reverse fastq file, or reverse fasta and quality files.'
+                    if not args.nowarning:
+                        print '- You must provide one reverse fastq file, or reverse fasta and quality files.'
                     ok = False
         #Check for arguments with wrong values (type checking was performed by argparse).
         if args.match < 0:
-            print '- Needleman-Wunsch match score must be a non-negative integer.'
+            if not args.nowarning:
+                print '- Needleman-Wunsch match score must be a non-negative integer.'
             ok = False
         if args.mismatch > 0:
-            print '- Needleman-Wunsch mismatch penalty must be a non-positive integer.'
+            if not args.nowarning:
+                print '- Needleman-Wunsch mismatch penalty must be a non-positive integer.'
             ok = False
         if args.gap > 0:
-            print '- Needleman-Wunsch gap penalty must be a non-positive integer.'
+            if not args.nowarning:
+                print '- Needleman-Wunsch gap penalty must be a non-positive integer.'
             ok = False
         if args.insert < 1:
-            print '- The contig constructor insert parameter must be a positive integer.'
+            if not args.nowarning:
+                print '- The contig constructor insert parameter must be a positive integer.'
             ok = False
         if args.deltaq < 1:
-            print '- The contig constructor deltaq parameter must be a positive integer.'
+            if not args.nowarning:
+                print '- The contig constructor deltaq parameter must be a positive integer.'
             ok = False
         if not 0 < args.uncert <= 1:
-            print '- The uncert parameter must be between 0 (not included) and 1.'
+            if not args.nowarning:
+                print '- The uncert parameter must be between 0 (not included) and 1.'
             ok = False
         if args.maxerrors >= 0:
-            print '- The maxerrors parameter must be greater than 0.'
+            if not args.nowarning:
+                print '- The maxerrors parameter must be greater than 0.'
             ok = False
         if not 0 < args.alpha < 1:
-            print '- The alpha parameter must be between 0 (not included) and 1.'
+            if not args.nowarning:
+                print '- The alpha parameter must be between 0 (not included) and 1.'
             ok = False
         if ok:
             #Check for arguments with wrong values that can be harmlessly changed back to their defaults.
             if args.processors < 1:
-                print '- Processors must be a non-zero positive integer. The default value of 1 will be used.'
+                if not args.nowarning:
+                    print '- Processors must be a non-zero positive integer. The default value of 1 will be used.'
                 args.processors = 1
             #Check for missing libraries that can be substituted by their python implementation.
             if args.paired and not Cy_nw_align:
-                print '\nCython implementation of Needlemann-Wunsch aligner is not present.'
-                print 'Will use pure python implementation instead.\n'
+                if not args.nowarning:
+                    print '\nCython implementation of Needlemann-Wunsch aligner is not present.'
+                    print 'Will use pure python implementation instead.\n'
             if args.error_calc == 'poisson_binomial' and not Cbernoulli:
-                print '\nC implementation of Poisson binomial filtering algorithm is not present.'
-                print 'Will use pure python implementation instead.\n'
+                if not args.nowarning:
+                    print '\nC implementation of Poisson binomial filtering algorithm is not present.'
+                    print 'Will use pure python implementation instead.\n'
             #Print other useful info:
             if (args.reverse_fasta or args.reverse_fastq) and not args.paired:
-                print 'You provided a reverse sequence file, but not the --paired flag. Note that only the forward file will be processed.'
-                print
+                if not args.nowarning:
+                    print 'You provided a reverse sequence file, but not the --paired flag. Note that only the forward file will be processed.'
+                    print
             if args.paired and args.consensus_qscore != 'posterior':
-                print 'The "%s" method for calculating consensus quality scores is no longer recommended.'%args.consensus_qscore
-                print 'Please consider running the script with the "-q posterior" flag instead. See documentation for details'
-                print
+                if not args.nowarning:
+                    print 'The "%s" method for calculating consensus quality scores is no longer recommended.'%args.consensus_qscore
+                    print 'Please consider running the script with the "-q posterior" flag instead. See documentation for details'
+                    print
             if args.error_calc == 'bootstrap':
-                print 'The bootstrap method is only included for testing and nostalgia. Mainly the second, at this point.'
-                print 'If your purpose falls outside of these two categories, please consider switching to "-e poisson_binomial" or "-e poisson".'
-                print
+                if not args.nowarning:
+                    print 'The bootstrap method is only included for testing and nostalgia. Mainly the second, at this point.'
+                    print 'If your purpose falls outside of these two categories, please consider switching to "-e poisson_binomial" or "-e poisson".'
+                    print
             return ok
         else:
-            print '\nFor more info type moira.py -h or moira.py --doc.\n'
+            if not args.nowarning:
+                print '\nFor more info type moira.py -h or moira.py --doc.\n'
             return False
 
 
