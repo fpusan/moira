@@ -56,7 +56,7 @@ class TestContigConstructor(unittest.TestCase):
     def testContig(self):
         testSeq2RC, testQual2RC = moira.reverse_complement(testSeq2, testQual2)
         aligned1, aligned2 = moira.nw_align(testSeq1, testSeq2RC, args.match, args.mismatch, args.gap)[:2]
-        self.assertEqual(moira.make_contig(aligned1, testQual1, aligned2, testQual2RC, args.insert, args.deltaq, args.consensus_qscore), test_contig)
+        self.assertEqual(moira.make_contig(aligned1, testQual1, aligned2, testQual2RC, args.insert, args.deltaq, args.consensus_qscore, args.qscore_cap), test_contig)
 
         
 class TestProcessing(unittest.TestCase):
@@ -129,10 +129,10 @@ test_PairedProcess = ('foo', 'CCTACGGGTGGCAGCAGTAGGGAATATTGCACAATGGGCGAAAGCCTGAT
 
 args = Arguments(alpha = 0.005, match = 1, gap = -2, mismatch = -1, insert = 20, deltaq = 6, consensus_qscore = 'best',
                  paired = True, truncate = 200, only_contig = False, error_calc = 'poisson_binomial', ambigs = 'treat_as_errors',
-                 round = False, silent = True, doc = False, uncert = 0.01, maxerrors = None, processors = 1,
+                 round = False, silent = True, nowarning = True, doc = False, uncert = 0.01, maxerrors = None, processors = 1,
                  forward_fasta = None, forward_quals = None, reverse_fasta = None, reverse_quals = None,
                  forward_fastq = None, reverse_fastq = None, output_format = 'fasta', collapse = True, pipeline = 'mothur', fastq_offset = 33,
-                 relabel = None, output_compression = 'none')
+                 relabel = None, output_compression = 'none', qscore_cap = 40)
 
 
 if __name__ == '__main__':
