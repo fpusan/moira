@@ -1,4 +1,5 @@
 #define -NPY_1_7_API_VERSION
+#cython: boundscheck=False, wraparound=False
 
 #compile with: gcc -fpic -shared -I /usr/include/python2.7/ -o nw_align.so nw_align.c
 
@@ -43,7 +44,8 @@ BSD3_LICENSE = """
 """
 
 cimport cython
-@cython.boundscheck(False)
+from cython.view cimport array as cvarray
+
 cpdef nw_align(seq_1, seq_2, int match, int mismatch, int gap, refine_overlap = True, verbose = False):
     """
     Globally align two sequences using the Needleman-Wunsch algorithm.
@@ -52,60 +54,66 @@ cpdef nw_align(seq_1, seq_2, int match, int mismatch, int gap, refine_overlap = 
     - First row and column will be initialized to 0 instead of applying the gap penalty.
     - Last row or column will be modified with by the nw_overlap function to insert the correct number of gaps at 3'. 
     """
-
+    cdef Py_ssize_t i, j, rd, cd
     #Populate matrices.
     seq_1 =' %s'%seq_1 #We need an extra space at the beginning for building the matrix.
     seq_2 =' %s'%seq_2
-    cdef list score_matrix = []
-    cdef list pointer_matrix = [] #Will contain tuples with the displacement in rows and columns (i.e. (0, -1) for going left).
+    cdef Py_ssize_t L1 = len(seq_1)
+    cdef Py_ssize_t L2 = len(seq_2)
+    cdef int [:,:] score_matrix = cvarray(shape=(L1,L2), itemsize=sizeof(int), format="i")
+    cdef int [:,:] row_displacement = cvarray(shape=(L1,L2), itemsize=sizeof(int), format="i")
+    cdef int [:,:] column_displacement = cvarray(shape=(L1,L2), itemsize=sizeof(int), format="i")
     pointers = {(0, 0) : 'x', (-1, -1) : 'd', (0, -1) : 'l', (-1, 0) : 'u'}
 
-    cdef unsigned int i, j
-    cdef unsigned int L1 = len(seq_1)
-    cdef unsigned int L2 = len(seq_2)
     #Start with first row and column.
     for i from 0 <= i < L1:
         if refine_overlap:
-            score_matrix.append([0])
+            score_matrix[i, 0] = 0
         else:
-            score_matrix.append([<int>i * gap])
-        pointer_matrix.append([(-1, 0)])
+            score_matrix[i, 0] = i * gap
+        row_displacement[i, 0] = -1
+        column_displacement[i, 0] = 0
     for j from 1 <= j < L2:
         if refine_overlap:
-            score_matrix[0].append(0)
+            score_matrix[0, j] = 0
         else:
-            score_matrix[0].append(<int>j * gap)
-        pointer_matrix[0].append((0, -1))
+            score_matrix[0, j] = j * gap
+        row_displacement[0, j] = 0
+        column_displacement[0, j] = -1
 
     cdef int diag_score, up_score, left_score
     #Then the rest.
     for i from 1 <= i < L1:
         for j from 1 <= j < L2:
             if seq_1[i] == seq_2[j]:
-                diag_score = score_matrix[i-1][j-1] + match
+                diag_score = score_matrix[i-1, j-1] + match
             else:
-                diag_score = score_matrix[i-1][j-1] + mismatch
+                diag_score = score_matrix[i-1, j-1] + mismatch
 
-            up_score = score_matrix[i-1][j] + gap
-            left_score = score_matrix[i][j-1] + gap
+            up_score = score_matrix[i-1, j] + gap
+            left_score = score_matrix[i, j-1] + gap
 
             if diag_score >= up_score:
                 if diag_score >= left_score:
-                    score_matrix[i].append(diag_score)
-                    pointer_matrix[i].append((-1, -1))
+                    score_matrix[i, j] = diag_score
+                    row_displacement[i, j] = -1
+                    column_displacement[i, j] = -1
                 else:
-                    score_matrix[i].append(left_score)
-                    pointer_matrix[i].append((0, -1))
+                    score_matrix[i, j] = left_score
+                    row_displacement[i, j] = 0
+                    column_displacement[i, j] = -1
             else:
                 if up_score >= left_score:
-                    score_matrix[i].append(up_score)
-                    pointer_matrix[i].append((-1, 0))
+                    score_matrix[i,j] = up_score
+                    row_displacement[i, j] = -1
+                    column_displacement[i, j] = 0
                 else:
-                    score_matrix[i].append(left_score)
-                    pointer_matrix[i].append((0, -1))
+                    score_matrix[i,j] = left_score
+                    row_displacement[i, j] = 0
+                    column_displacement[i, j] = -1
 
     if refine_overlap:
-        nw_overlap(score_matrix, pointer_matrix)
+        nw_overlap(score_matrix, row_displacement, column_displacement)
 
     if verbose:
         print 'Needleman-Wunsch matrix.'
@@ -113,38 +121,38 @@ cpdef nw_align(seq_1, seq_2, int match, int mismatch, int gap, refine_overlap = 
             print '(Mothur overlap corrections were applied)'
         print '\t' + '\t\t'.join(seq_2)
         for i in range(L1):
-            print seq_1[i], '\t'.join([str((score_matrix[i][j], pointers[pointer_matrix[i][j]])) for j in range(L2)])
+            print seq_1[i], '\t'.join([str((score_matrix[i,j], pointers[(row_displacement[i,j],column_displacement[i,j])])) for j in range(L2)])
         print
 
     #Traceback:
     cdef int score = 0
     seq_1_aligned = []
     seq_2_aligned = []
-    i, j = len(seq_1) - 1, len(seq_2) - 1
+    i, j = L1 - 1, L2 - 1
 
     while i > 0 or j > 0:
 
-        score += score_matrix[i][j]
-        pointer = pointer_matrix[i][j]
-        if pointer[0] == -1:
+        rd, cd = row_displacement[i, j], column_displacement[i, j]
+        score += score_matrix[i, j]
+        if rd == -1:
             seq_1_aligned.append(seq_1[i])
         else:
             seq_1_aligned.append('-')
-        if pointer[1] == -1:
+        if cd == -1:
             seq_2_aligned.append(seq_2[j])
         else:
             seq_2_aligned.append('-')
 
-        i += pointer[0] #Note that these values are 0 or negative.
-        j += pointer[1]
+        i += rd #Note that these values are 0 or negative.
+        j += cd
 
     seq_1_aligned = ''.join(reversed(seq_1_aligned)) #Since we filled it backwards.
     seq_2_aligned = ''.join(reversed(seq_2_aligned))
 
     return seq_1_aligned, seq_2_aligned, score
 
-@cython.boundscheck(False)
-cdef nw_overlap(list score_matrix, list pointer_matrix):
+
+cdef nw_overlap(int [:,:] score_matrix, int [:,:] row_displacement, int [:,:] column_displacement):
 
     """
     Clean up the 3' part of the alignment as mothur does, in order to avoid having a lot of scattered
@@ -159,20 +167,21 @@ cdef nw_overlap(list score_matrix, list pointer_matrix):
     """
     
     cdef unsigned int i, j
-    cdef unsigned int L1 = len(score_matrix)
-    cdef unsigned int L2 = len(score_matrix[0])
+    cdef Py_ssize_t L1 = score_matrix.shape[0]
+    cdef Py_ssize_t L2 = score_matrix.shape[1]
     cdef int best_in_last_column_score = -10000
-    cdef unsigned int best_in_last_column_index = 0
+    cdef Py_ssize_t best_in_last_column_index = 0
+    cdef int cell_score
     for i from 0 <= i < L1:
-        cell_score = score_matrix[i][-1]
+        cell_score = score_matrix[i, L2-1]
         if cell_score >= best_in_last_column_score:
             best_in_last_column_score = cell_score
             best_in_last_column_index = i
 
     cdef int best_in_last_row_score = -10000
-    cdef unsigned int best_in_last_row_index = 0
+    cdef Py_ssize_t best_in_last_row_index = 0
     for j from 0 <= j < L2:
-        cell_score = score_matrix[-1][j]
+        cell_score = score_matrix[L1-1,j]
         if cell_score >= best_in_last_row_score:
             best_in_last_row_score = cell_score
             best_in_last_row_index = j
@@ -183,9 +192,11 @@ cdef nw_overlap(list score_matrix, list pointer_matrix):
 
     elif best_in_last_column_score > best_in_last_row_score:
         for i in range(len(score_matrix) -1, best_in_last_column_index, -1):
-            pointer_matrix[i][-1] = -1, 0
+            row_displacement[i, L2-1] = -1
+            column_displacement[i, L2-1] = 0
 
     else:
         for j in range(len(score_matrix[0]) - 1, best_in_last_row_index, -1):
-            pointer_matrix[-1][j] = 0, -1
+            row_displacement[L1-1, j] = 0
+            column_displacement[L1-1, j] = -1
 
