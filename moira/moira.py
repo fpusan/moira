@@ -703,8 +703,9 @@ def check_arguments(args):
                     print
             if args.paired and args.consensus_qscore != 'posterior':
                 if not args.nowarning:
-                    print 'The "%s" method for calculating consensus quality scores is no longer recommended.'%args.consensus_qscore
-                    print 'Please consider running the script with the "-q posterior" flag instead. See documentation for details'
+                    print 'You chose the "%s" method for calculating consensus quality scores.'%args.consensus_qscore
+                    print 'We now provide the option to use posterior probabilities instead, by adding the flag "-q posterior".'
+                    print 'Please consider testing it and checking if it improves your results. See documentation for details.'
                     print
             if args.error_calc == 'bootstrap':
                 if not args.nowarning:
