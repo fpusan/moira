@@ -24,7 +24,7 @@ setup(
     author = 'Fernando Puente-Sánchez',
     author_email = 'fpusan@gmail.com',
     url = 'https://github.com/fpusan/moira', # use the URL to the github repo
-    download_url = 'https://github.com/fpusan/moira/tarball/v1.1.0',
+    download_url = 'https://github.com/fpusan/moira/tarball/v1.2.0',
     license = 'BSD-3',
     keywords = ['high-throughput sequencing', 'microbial ecology', '16S analysis', 'marker-gene',
                 'bioinformatics', 'Illumina', '454', 'IonTorrent', 'quality-filtering'],
