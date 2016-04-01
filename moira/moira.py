@@ -674,7 +674,7 @@ def check_arguments(args):
             if not args.nowarnings:
                 print '- The uncert parameter must be between 0 (not included) and 1.'
             ok = False
-        if args.maxerrors <= 0:
+        if args.maxerrors and args.maxerrors < 0:
             if not args.nowarnings:
                 print '- The maxerrors parameter must be greater than 0.'
             ok = False
