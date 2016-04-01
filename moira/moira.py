@@ -641,75 +641,75 @@ def check_arguments(args):
             args.paired = True
         else:
             if not args.forward_fastq and (not args.forward_fasta or not args.forward_qual):
-                if not args.nowarning:
+                if not args.nowarnings:
                     print '- You must at least provide one fastq file, or a fasta and quality files.'
                 ok = False
             if args.paired:
                 if not args.reverse_fastq and (not args.reverse_fasta or not args.reverse_qual):
-                    if not args.nowarning:
+                    if not args.nowarnings:
                         print '- You must provide one reverse fastq file, or reverse fasta and quality files.'
                     ok = False
         #Check for arguments with wrong values (type checking was performed by argparse).
         if args.match < 0:
-            if not args.nowarning:
+            if not args.nowarnings:
                 print '- Needleman-Wunsch match score must be a non-negative integer.'
             ok = False
         if args.mismatch > 0:
-            if not args.nowarning:
+            if not args.nowarnings:
                 print '- Needleman-Wunsch mismatch penalty must be a non-positive integer.'
             ok = False
         if args.gap > 0:
-            if not args.nowarning:
+            if not args.nowarnings:
                 print '- Needleman-Wunsch gap penalty must be a non-positive integer.'
             ok = False
         if args.insert < 1:
-            if not args.nowarning:
+            if not args.nowarnings:
                 print '- The contig constructor insert parameter must be a positive integer.'
             ok = False
         if args.deltaq < 1:
-            if not args.nowarning:
+            if not args.nowarnings:
                 print '- The contig constructor deltaq parameter must be a positive integer.'
             ok = False
         if not 0 < args.uncert <= 1:
-            if not args.nowarning:
+            if not args.nowarnings:
                 print '- The uncert parameter must be between 0 (not included) and 1.'
             ok = False
         if args.maxerrors >= 0:
-            if not args.nowarning:
+            if not args.nowarnings:
                 print '- The maxerrors parameter must be greater than 0.'
             ok = False
         if not 0 < args.alpha < 1:
-            if not args.nowarning:
+            if not args.nowarnings:
                 print '- The alpha parameter must be between 0 (not included) and 1.'
             ok = False
         if ok:
             #Check for arguments with wrong values that can be harmlessly changed back to their defaults.
             if args.processors < 1:
-                if not args.nowarning:
+                if not args.nowarnings:
                     print '- Processors must be a non-zero positive integer. The default value of 1 will be used.'
                 args.processors = 1
             #Check for missing libraries that can be substituted by their python implementation.
             if args.paired and not Cy_nw_align:
-                if not args.nowarning:
+                if not args.nowarnings:
                     print '\nCython implementation of Needlemann-Wunsch aligner is not present.'
                     print 'Will use pure python implementation instead.\n'
             if args.error_calc == 'poisson_binomial' and not Cbernoulli:
-                if not args.nowarning:
+                if not args.nowarnings:
                     print '\nC implementation of Poisson binomial filtering algorithm is not present.'
                     print 'Will use pure python implementation instead.\n'
             #Print other useful info:
             if (args.reverse_fasta or args.reverse_fastq) and not args.paired:
-                if not args.nowarning:
+                if not args.nowarnings:
                     print 'You provided a reverse sequence file, but not the --paired flag. Note that only the forward file will be processed.'
                     print
             if args.error_calc == 'bootstrap':
-                if not args.nowarning:
+                if not args.nowarnings:
                     print 'The bootstrap method is only included for testing and nostalgia. Mainly the second, at this point.'
                     print 'If your purpose falls outside of these two categories, please consider switching to "-e poisson_binomial" or "-e poisson".'
                     print
             return ok
         else:
-            if not args.nowarning:
+            if not args.nowarnings:
                 print '\nFor more info type moira.py -h or moira.py --doc.\n'
             return False
 
