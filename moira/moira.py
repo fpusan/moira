@@ -170,7 +170,7 @@ Distributed under the Modified BSD license.
 
 __author__ = 'Fernando Puente-Sánchez'
 __email__ = 'fpusan@gmail.com'
-__version__ = '1.2.0'
+__version__ = '1.2.1'
 __date__ = '01-Apr-2016'
 __license__ = 'BSD-3'
 __copyright__ = 'Copyright 2013-2016 Fernando Puente-Sánchez'

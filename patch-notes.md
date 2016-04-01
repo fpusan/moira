@@ -1,3 +1,6 @@
+- v1.2.1
+  - Fixed a bug that was preventing the --maxerrors option to work (contributed by Christopher Thornton, University of Utah).
+
 - v1.2.0
   - Added support for posterior consensus qscore calculation during contig construction, as described by Edgar & Flyvbjerg (2015). This can be achieved by using the "--paired" and "-q posterior" flags.
   - Added the --qscore_cap option for limiting the maximum consensus qscore reported during contig construction. It's default value is 40, which should result in backwards compatibility when using the old consensus qscore calculation options. It can be nonetheless disabled by setting it to 0.
