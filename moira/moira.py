@@ -674,7 +674,7 @@ def check_arguments(args):
             if not args.nowarnings:
                 print '- The uncert parameter must be between 0 (not included) and 1.'
             ok = False
-        if args.maxerrors and args.maxerrors < 0:
+        if args.maxerrors != None and args.maxerrors <= 0:
             if not args.nowarnings:
                 print '- The maxerrors parameter must be greater than 0.'
             ok = False
@@ -829,7 +829,7 @@ def write_results(index, header, sequence, quals, expected_errors, names_info, a
                 contig_output.write('@%s\n%s\n+\n%s\n'%(header, sequence, ''.join([chr(qual + args.fastq_offset) for qual in quals])))
             else:
                 contig_output.write('>%s\n%s\n'%(header, sequence))
-                qual_output.write('>%s\n%s\n'%(header, ' '.join(quals)))
+                qual_output.write('>%s\n%s\n'%(header, ' '.join(map(str, quals))))
             if args.collapse and args.pipeline == 'mothur':
                 names_output.write('%s\t%s\n'%(header, ','.join(names_info)))
             return 0, 0
@@ -838,7 +838,7 @@ def write_results(index, header, sequence, quals, expected_errors, names_info, a
                 bad_contig_output.write('@%s\terrors > %.2f\n%s\n+\n%s\n'%(header, args.maxerrors, sequence, ''.join([chr(qual + args.fastq_offset) for qual in quals])))
             else: 
                 bad_contig_output.write('>%s\terrors > %.2f\n%s\n'%(header, args.maxerrors, sequence))
-                bad_qual_output.write('>%s\terrors > %.2f\n%s\n'%(header, args.maxerrors, ' '.join(quals)))
+                bad_qual_output.write('>%s\terrors > %.2f\n%s\n'%(header, args.maxerrors, ' '.join(map(str, quals))))
             if args.collapse:
                 if args.pipeline == 'mothur':
                     bad_names_output.write('%s\t%s\n'%(header.lstrip('>'), ','.join(names_info)))
