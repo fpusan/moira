@@ -129,7 +129,7 @@ test_PairedProcess = ('foo', 'CCTACGGGTGGCAGCAGTAGGGAATATTGCACAATGGGCGAAAGCCTGAT
 
 args = Arguments(alpha = 0.005, match = 1, gap = -2, mismatch = -1, insert = 20, deltaq = 6, consensus_qscore = 'best',
                  paired = True, truncate = 200, only_contig = False, error_calc = 'poisson_binomial', ambigs = 'treat_as_errors',
-                 round = False, silent = True, nowarnings = True, doc = False, uncert = 0.01, maxerrors = None, processors = 1,
+                 round = False, silent = True, nowarnings = False, doc = False, uncert = 0.01, maxerrors = None, processors = 1,
                  forward_fasta = None, forward_quals = None, reverse_fasta = None, reverse_quals = None,
                  forward_fastq = None, reverse_fastq = None, output_format = 'fasta', collapse = True, pipeline = 'mothur', fastq_offset = 33,
                  relabel = None, output_compression = 'none', qscore_cap = 40)
