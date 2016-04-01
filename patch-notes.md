@@ -2,7 +2,7 @@
   - Added support for posterior consensus qscore calculation during contig construction, as described by Edgar & Flyvbjerg (2015). This can be achieved by using the "--paired" and "-q posterior" flags.
   - Added the --qscore_cap option for limiting the maximum consensus qscore reported during contig construction. It's default value is 40, which should result in backwards compatibility when using the old consensus qscore calculation options. It can be nonetheless disabled by setting it to 0.
   - The documentation and examples have been updated to reflect these changes.
-  - Optimized the cython code for the Needleman-Wunsch aligner. This should result in a >5x speed boost when running moira.py on paired-end reads, if the cython extension is available.
+  - Optimized the cython code for the Needleman-Wunsch aligner. This should result in a noticeable speed boost when running moira.py on paired-end reads.
   - The script will now print warning messages when using deprecated options.
   - Fixed an error that raised when using the -e bootstrap flag.
 
