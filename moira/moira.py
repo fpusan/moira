@@ -144,9 +144,10 @@ COMMENTS:
 
         - We now provide the option to calculate posterior error probabilities for reporting consensus quality scores, as described by Edgar &
           Flyvbjerg (2015). This can be achieved by adding the '--consensus_qscore posterior' or '-q posterior' flags, as shown in the example above.
-          This method is theoretically sound and performed generally better than our previous approach when tested with mock community data.
+          While this method is theoretically sound, it only improved the results obtained by using our default '-q best' option for some of our mock
+          community samples.
 
-        - Approximating the sum of bernoulli random variables to a poisson distribution is quicker than calculating 
+        - Approximating the sum of Bernoulli random variables to a poisson distribution is quicker than calculating 
           their exact sum (Poisson binomial distribution). It proves specially useful for long reads (>500 nt).
           That said, the Poisson binomial filtering algorithm is also implemented in C and even the python implementation is quick enough
           for processing large datasets. The bootstrap method (--error_calc bootstrap) is a numerical algorithm for performing the sum of bernoulli
@@ -170,7 +171,7 @@ Distributed under the Modified BSD license.
 __author__ = 'Fernando Puente-Sánchez'
 __email__ = 'fpusan@gmail.com'
 __version__ = '1.2.0'
-__date__ = '13-Mar-2016'
+__date__ = '01-Apr-2016'
 __license__ = 'BSD-3'
 __copyright__ = 'Copyright 2013-2016 Fernando Puente-Sánchez'
 
@@ -700,12 +701,6 @@ def check_arguments(args):
             if (args.reverse_fasta or args.reverse_fastq) and not args.paired:
                 if not args.nowarning:
                     print 'You provided a reverse sequence file, but not the --paired flag. Note that only the forward file will be processed.'
-                    print
-            if args.paired and args.consensus_qscore != 'posterior':
-                if not args.nowarning:
-                    print 'You chose the "%s" method for calculating consensus quality scores.'%args.consensus_qscore
-                    print 'We now provide the option to use posterior probabilities instead, by adding the flag "-q posterior".'
-                    print 'Please consider testing it and checking if it improves your results. See documentation for details.'
                     print
             if args.error_calc == 'bootstrap':
                 if not args.nowarning:
