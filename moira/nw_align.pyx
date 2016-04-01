@@ -1,7 +1,7 @@
 #define -NPY_1_7_API_VERSION
 #cython: boundscheck=False, wraparound=False
 
-#compile with: gcc -fpic -shared -I /usr/include/python2.7/ -o nw_align.so nw_align.c
+#compile with: cython nw_align.pyx && gcc -fpic -shared -I /usr/include/python2.7/ -o nw_align.so nw_align.c
 
 __author__ = 'Fernando Puente-Sánchez'
 __email__ = 'fpusan@gmail.com'
