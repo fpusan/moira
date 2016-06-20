@@ -1,3 +1,9 @@
+- v1.3.0
+  - Fixed a bug in which the '>' character was not added to the beginning of sequence headers when using the --only_contig option.
+  - Fixed a bug in the bernoulli library that caused error calculation for very short sequences to randomly return NaNs. This bug was not passing silently, so the results obtained with the previous versions of moira can still be trusted.
+  - Added the option to keep only the overlapping region when assembling paired-end reads. This can be achieved with the --trim_overlap flag.
+  - Added the option to discard contigs with a small overlapping region, via the --min_overlap parameter.
+
 - v1.2.1
   - Fixed a bug that was preventing the --maxerrors option to work (contributed by Christopher Thornton, University of Utah).
 

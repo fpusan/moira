@@ -8,17 +8,18 @@ Quality-filter raw sequence reads using the Poisson binomial filtering algorithm
 
 The moira.py script and the Poisson binomial filtering algorithm are now described in the following paper:
 
-    Puente-Sánchez, F., Aguirre, J., & Parro, V. (2015).
+    Puente-Sánchez, F., Aguirre, J., & Parro, V. (2016).
     A novel conceptual approach to read-filtering in high-throughput amplicon sequencing studies.
-    Nucleic acids research, gkv1113.
+    Nucleic acids research, 44 (4): e40.
 
-which can be accessed online at: https://nar.oxfordjournals.org/content/early/2015/11/06/nar.gkv1113.full
+which can be accessed online at: http://nar.oxfordjournals.org/content/44/4/e40
 
 
 REQUIREMENTS:
 
 - Expects that input sequences (single or paired) and qualities are in the same order.
 - Expects that sequences and qualities are stored only in one line (i.e. >header\\nsequence\\n>header2\\nsequence2).
+- Requires numpy.
 - OPTIONAL: Requires the bernoulli library, which includes the C implementation of the Poisson binomial filtering algorithm.
   If not available, the script will automaticaly switch to the pure
   python implementation.
@@ -88,6 +89,7 @@ PARAMETERS:
                              the same quality score. In that case, the reported quality score will be always 2.
                 --qscore_cap (default 40): Maximum consensus quality score to report. Higher consensus quality scores will be trimmed to
                              the value of --qscore_cap. Setting it to 0 will remove the cap.
+                --trim_overlap (default False): trim the contig to the overlapping region.
 
         - Quality-filtering parameters:
 
@@ -105,16 +107,20 @@ PARAMETERS:
                         disallow: will discard sequences with ambiguities.
                         ignore: will ignore ambiguities.
 
+                --truncate (default None): truncate sequences to a fixed length before quality control. Discard sequences smaller than that length.
+
+                --min_overlap (default None): discard contigs with less than the specified overlap length. Will be ignored if using single-end reads.
+
                 --round: Round down the predicted errors to the nearest integer prior to filtering.
 
-                --uncert (default 0.01): Maximum divergence of the observed sequence from the original one due to sequencing errors.
+                --uncert (default 0.01): maximum divergence of the observed sequence from the original one due to sequencing errors.
 
-                --maxerrors (no default value): Maximum errors allowed in the sequence.
+                --maxerrors (no default value): maximum errors allowed in the sequence.
                         Will override --uncert if specified as a parameter.
 
-                --alpha (default 0.005): Probability of underestimating the actual errors of a sequence.
+                --alpha (default 0.005): probability of underestimating the actual errors of a sequence.
 
-                --bootstrap (default 100): Number of replicates per position used for error calculation by the bootstrap method.
+                --bootstrap (default 100): number of replicates per position used for error calculation by the bootstrap method.
         
         - Other:
 
@@ -170,8 +176,8 @@ Distributed under the Modified BSD license.
 
 __author__ = 'Fernando Puente-Sánchez'
 __email__ = 'fpusan@gmail.com'
-__version__ = '1.2.1'
-__date__ = '01-Apr-2016'
+__version__ = '1.3.0'
+__date__ = '20-Jun-2016'
 __license__ = 'BSD-3'
 __copyright__ = 'Copyright 2013-2016 Fernando Puente-Sánchez'
 
@@ -303,6 +309,7 @@ def main(args):
             forward_fasta_data = open_input(args.forward_fasta)
             forward_qual_data = open_input(args.forward_qual)
 
+
         if args.paired:
             if args.reverse_fastq:
                 reverse_fastq_data = open_input(args.reverse_fastq)
@@ -312,6 +319,7 @@ def main(args):
         else:
             reverse_fastq_data, reverse_fasta_data, reverse_qual_data = None, None, None
     
+
         if args.only_contig:
             if args.output_format == 'fastq':
                 contig_output = open_write('%s.contigs.fastq%s'%(output_name, suffix), 'w')
@@ -319,12 +327,24 @@ def main(args):
             else:
                 contig_output = open_write('%s.contigs.fasta%s'%(output_name, suffix), 'w')
                 qual_output = open_write('%s.contigs.qual%s'%(output_name, suffix), 'w')
-            if args.collapse:
+            if args.collapse and args.pipeline == 'mothur':
                 names_output = open_write('%s.contigs.names%s'%(output_name, suffix), 'w')
             else:
                 names_output = None
-            bad_contig_output, bad_qual_output, bad_names_output = None, None, None
-
+            if not args.truncate and not args.min_overlap: 
+                bad_contig_output, bad_qual_output, bad_names_output = None, None, None
+            else: #Not doing qc par se, but filtering due to length and/or minoverlap.
+                if args.output_format == 'fastq':
+                    bad_contig_output = open_write('%s.bad.contigs.fastq%s'%(output_name, suffix), 'w')
+                    bad_qual_output = None
+                else:
+                    bad_contig_output = open_write('%s.bad.contigs.fasta%s'%(output_name, suffix), 'w')
+                    bad_qual_output = open_write('%s.bad.contigs.qual%s'%(output_name, suffix), 'w')
+                if args.collapse and args.pipeline == 'mothur':
+                    bad_names_output = open_write('%s.bad.contigs.names%s'%(output_name, suffix), 'w')
+                else:
+                    bad_names_output = None
+                
         else:
             if args.output_format == 'fastq':
                 contig_output = open_write('%s.qc.good.fastq%s'%(output_name, suffix), 'w')
@@ -341,6 +361,14 @@ def main(args):
                 bad_names_output = open_write('%s.qc.bad.names%s'%(output_name, suffix), 'w')
             else:
                 names_output, bad_names_output = None, None
+                
+
+        if args.paired:
+            contig_report_output = open_write('%s.contigs.report%s'%(output_name, suffix), 'w')
+            contig_report_output.write('header\tn_seqs\toverlap_length\tgaps\tmismatches\n')
+        else:
+            contig_report_output = None
+
         
     except IOError, e:
         print e
@@ -376,7 +404,8 @@ def main(args):
                                               reverse_fasta_data, reverse_qual_data)
         processed_seqs = 0
         discarded_errors = 0.0
-        discarded_length = 0.0
+        discarded_minlength = 0.0
+        discarded_minoverlap = 0.0
         if args.collapse:
             uniques = {} #{sequence{rep_header: header, rep_errors: expected_errors, rep_quals: quals, names_info: [headers]}
         else:
@@ -423,31 +452,37 @@ def main(args):
             #Retrieve results from asynchronous processes:
             if args.processors > 1:
                 results = [result.get() for result in results]
-            for header, contig, contig_quals, expected_errors in results:
-                if numpy:
-                    if isnan(expected_errors): #Should not happen anymore, but we're still testing just in case.
-                        raise ReturnedNaNError(header)
+            for header, contig, contig_quals, expected_errors, overlap_length, gaps, mismatches in results:
+                if isnan(expected_errors): #Should not happen anymore, but we're still testing just in case.
+                    raise ReturnedNaNError(header)
 
                 if args.collapse:
                     #Collapse unique sequences and choose the representative with the greater quality.
                     if contig not in uniques:
                         uniques[contig] = {'rep_header': header, 'rep_errors': expected_errors,
-                                           'rep_quals': contig_quals, 'names_info': [header]}
+                                           'rep_quals': contig_quals, 'names_info': [header],
+                                           'overlap_length': overlap_length, 'gaps': gaps, 'mismatches': mismatches}
                     else:
                         if expected_errors < uniques[contig]['rep_errors']:
                             uniques[contig]['rep_header'] = header
                             uniques[contig]['rep_errors'] = expected_errors
                             uniques[contig]['rep_quals'] = contig_quals
                             uniques[contig]['names_info'].insert(0, header)
+                            uniques[contig]['overlap_length'] = overlap_length
+                            uniques[contig]['gaps'] = gaps
+                            uniques[contig]['mismatches'] = mismatches
                         else:
                             uniques[contig]['names_info'].append(header)                         
                 else:
                     #Directly check if the sequence has passed the filter and write it.
-                    filtering_results = write_results(processed_seqs, header, contig, contig_quals, expected_errors, None, args,
+                    filtering_results = write_results(processed_seqs, header, contig, contig_quals, expected_errors, None,
+                                                      overlap_length, gaps, mismatches,
+                                                      args,
                                                       contig_output, qual_output, names_output,
-                                                      bad_contig_output, bad_qual_output, bad_names_output)
+                                                      bad_contig_output, bad_qual_output, bad_names_output, contig_report_output)
                     discarded_errors += filtering_results[0]
-                    discarded_length += filtering_results[1]
+                    discarded_minlength += filtering_results[1]
+                    discarded_minoverlap += filtering_results[3]
                                    
                 processed_seqs += 1                
         ###############
@@ -459,33 +494,45 @@ def main(args):
                 values = uniques[sequence]
                 filtering_results = write_results(index, values['rep_header'], sequence,
                                                   values['rep_quals'], values['rep_errors'],
-                                                  values['names_info'], args,
+                                                  values['names_info'],
+                                                  values['overlap_length'], values['gaps'], values['mismatches'],
+                                                  args,
                                                   contig_output, qual_output, names_output,
-                                                  bad_contig_output, bad_qual_output, bad_names_output)
+                                                  bad_contig_output, bad_qual_output, bad_names_output, contig_report_output)
                 discarded_errors += filtering_results[0]
-                discarded_length += filtering_results[1]
+                discarded_minlength += filtering_results[1]
+                discarded_minoverlap += filtering_results[2]
         ###############
                                    
 
         #Be nice and say goodbye.
         if not args.silent:
-            remaining_seqs = processed_seqs - discarded_errors - discarded_length
+            remaining_seqs = processed_seqs - discarded_errors - discarded_minlength - discarded_minoverlap
             print '- Kept %d (%.2f%%) of the original sequences.'%(remaining_seqs, ((remaining_seqs / processed_seqs) * 100))
             if args.truncate:
-                print '- %d (%.2f%%) of the original sequences were discarded due to length < %s.'%(discarded_length, (discarded_length / processed_seqs) * 100,
+                print '- %d (%.2f%%) of the original sequences were discarded due to length < %s.'%(discarded_minlength, (discarded_minlength / processed_seqs) * 100,
                                                                                                     args.truncate)
+            if args.paired and args.min_overlap:
+                print '- %d (%.2f%%) of the original sequences were discarded due to paired-end reads having an overlap length < %s.'%(discarded_minoverlap,
+                                                                                                        (discarded_minoverlap / processed_seqs) * 100, args.min_overlap)
+
             print '- %d (%.2f%%) of the original sequences were discarded due to low quality.\n'%(discarded_errors, (discarded_errors / processed_seqs) * 100)
             print 'The following output files were generated:'
             if args.only_contig:
                 if args.output_format == 'fastq':
                     print '%s.contigs.fastq%s'%(output_name, suffix)
+                    if args.truncate or args.min_overlap:
+                        print '%s.bad.contigs.fastq%s'%(output_name, suffix)
                 else:
                     print '%s.contigs.fasta%s'%(output_name, suffix)
-                    print '%s.contigs.qual%s'%(output_name, suffix)
+                    print '%s.contigs.qual%s'%(output_name, suffix)     
+                    if args.truncate or args.min_overlap:
+                        print '%s.bad.contigs.fasta%s'%(output_name, suffix)
+                        print '%s.bad.contigs.qual%s'%(output_name, suffix)
                 if args.collapse and args.pipeline == 'mothur':
-                    print '%s.contigs.names%s\n'%(output_name, suffix)
-                else:
-                    print
+                    print '%s.contigs.names%s'%(output_name, suffix)
+                    if args.truncate or args.min_overlap:
+                        print '%s.bad.contigs.names%s'%(output_name, suffix)
             else:
                 if args.output_format == 'fastq':
                     print '%s.qc.good.fastq%s'%(output_name, suffix)
@@ -500,9 +547,13 @@ def main(args):
                     print '%s.qc.bad.fasta%s'%(output_name, suffix)
                     print '%s.qc.bad.qual%s'%(output_name, suffix)
                 if args.collapse and args.pipeline == 'mothur':
-                    print '%s.qc.bad.names%s\n'%(output_name, suffix)
-                else:
-                    print
+                    print '%s.qc.bad.names%s'%(output_name, suffix)
+    
+            if args.paired:
+                print '%s.contigs.report%s\n'%(output_name, suffix)
+            else:
+                print
+
         ###############
 
     #Tidy your room after you play (even if you kinda broke your toys).
@@ -582,6 +633,8 @@ def parse_arguments():
                         help = 'Needleman-Wunsch aligner mismatch penalty.')
     constructor.add_argument('-g', '--gap', type = int, default = -2,
                         help = 'Needleman-Wunsch aligner gap penalty.')
+    constructor.add_argument('--trim_overlap', action = 'store_true',
+                        help = 'Trim the contig to the overlapping region.')
     constructor.add_argument('-i', '--insert', type = int, default = 20,
                         help = 'Contig constructor insert threshold.')
     constructor.add_argument('-d', '--deltaq', type = int, default = 6,
@@ -591,11 +644,14 @@ def parse_arguments():
                         help = 'Contig constructor consensus qscore: always report best qscore, sum qscores for matching bases, report posterior qscores.')
     constructor.add_argument('-z', '--qscore_cap', type = int, default = 40,
                         help = 'Maximum consensus quality score reported by the contig constructor. Use 0 for removing the qscore cap.')
+    
     filtering = parser.add_argument_group('Sequence filtering options')
     filtering.add_argument('-c', '--collapse', type = str2bool, default = 'True',
                         help = 'Collapse identical sequences before quality control.')
     filtering.add_argument('-t', '--truncate', type = int,
                         help = 'Truncate sequences to a fixed length before quality control. Discard smaller sequences.')
+    filtering.add_argument('-mo', '--min_overlap', type = int,
+                        help = 'Discard contigs with less than the specified overlap length.')
     filtering.add_argument('-e', '--error_calc', type = str, default = 'poisson_binomial',
                         choices = ('poisson_binomial', 'poisson_binomial_py', 'poisson', 'bootstrap'),
                         help = 'Error calculation method.')
@@ -630,9 +686,8 @@ def check_arguments(args):
     if not ok:
         return False
     #Check for missing libraries that make the program unable to run.
-    elif args.error_calc == 'bootstrap' and not numpy:
-        print '\nFailed to import numpy, which is required for the bootstrap error calculation.'
-        print 'Please try other error calculation method.'
+    elif not numpy:
+        print '\nFailed to import numpy.'
         print 'For more info type moira.py -h or moira.py --doc .\n'
         return False
     else:
@@ -682,6 +737,14 @@ def check_arguments(args):
             if not args.nowarnings:
                 print '- The alpha parameter must be between 0 (not included) and 1.'
             ok = False
+        if args.truncate and args.truncate <= 0:
+            if not args.nowarnings:
+                print '- The truncate parameter must be greater than 0.'
+            ok = False
+        if args.min_overlap != None and args.min_overlap <= 0:
+            if not args.nowarnings:
+                print '- The min_overlap parameter must be greater than 0.'
+            ok = False
         if ok:
             #Check for arguments with wrong values that can be harmlessly changed back to their defaults.
             if args.processors < 1:
@@ -701,6 +764,10 @@ def check_arguments(args):
             if (args.reverse_fasta or args.reverse_fastq) and not args.paired:
                 if not args.nowarnings:
                     print 'You provided a reverse sequence file, but not the --paired flag. Note that only the forward file will be processed.'
+                    print
+            if (args.min_overlap) and not args.paired:
+                if not args.nowarnings:
+                    print 'You specified a value for --min_overlap, but not the --paired flag. Note that contigs will not be assembled.'
                     print
             if args.error_calc == 'bootstrap':
                 if not args.nowarnings:
@@ -729,12 +796,13 @@ def process_data(header, forward_sequence, forward_quals, reverse_sequence, reve
             else:
                 forward_aligned, reverse_aligned, score = nw_align(forward_sequence, reverse_sequence,
                                                                  args.match, args.mismatch, args.gap)
-            contig, contig_quals = make_contig(forward_aligned, forward_quals, reverse_aligned, reverse_quals,
-                                               args.insert, args.deltaq, args.consensus_qscore, args.qscore_cap)
-            ###
+            contig, contig_quals, overlap_length, gaps, mismatches = make_contig(forward_aligned, forward_quals, reverse_aligned, reverse_quals,
+                                                                                 args.insert, args.deltaq,
+                                                                                 args.consensus_qscore, args.qscore_cap, args.trim_overlap)
+            ### 
         else:
+            overlap_length, gaps, mismatches = 0, 0, 0
             contig, contig_quals = forward_sequence, forward_quals
-        
         if args.truncate:
             contig, contig_quals = contig[:args.truncate], contig_quals[:args.truncate]
  
@@ -747,6 +815,8 @@ def process_data(header, forward_sequence, forward_quals, reverse_sequence, reve
             if args.error_calc in ('poisson_binomial', 'poisson_binomial_py'):
                 if args.error_calc == 'poisson_binomial' and Cbernoulli:
                     expected_errors, Ns = bernoulli.calculate_errors_PB(contig, contig_quals, args.alpha)
+                    if isnan(expected_errors): #Happens randomly when using the C implementation with very short sequences.
+                        expected_errors, Ns = calculate_errors_PB(contig, contig_quals, args.alpha) #So we fall back to the python version.
                 else:
                     expected_errors, Ns = calculate_errors_PB(contig, contig_quals, args.alpha)
             elif args.error_calc == 'poisson':
@@ -760,7 +830,7 @@ def process_data(header, forward_sequence, forward_quals, reverse_sequence, reve
         if args.round:
             expected_errors = math.floor(expected_errors)
 
-        return header, contig, contig_quals, expected_errors
+        return header, contig, contig_quals, expected_errors, overlap_length, gaps, mismatches
 
     except KeyboardInterrupt: #Let KeyboardInterrupt be raised only in the main function, b/c it hangs the program when catched inside a multiprocessing pool.
         pass
@@ -769,9 +839,11 @@ def process_data(header, forward_sequence, forward_quals, reverse_sequence, reve
         raise
        
  
-def write_results(index, header, sequence, quals, expected_errors, names_info, args,
+def write_results(index, header, sequence, quals, expected_errors, names_info,
+                  overlap_length, gaps, mismatches, args,
                   contig_output, qual_output, names_output,
-                  bad_contig_output, bad_qual_output, bad_names_output):
+                  bad_contig_output, bad_qual_output, bad_names_output,
+                  contig_report_output):
 
     """
     Decide if we're keeping or discarding the sequence, and write it to the corresponding output files.
@@ -781,47 +853,72 @@ def write_results(index, header, sequence, quals, expected_errors, names_info, a
 
     if args.relabel:
         header = '%s%d'%(args.relabel, index)
+
+
     if args.pipeline == 'USEARCH':
         if names_info:
             size = len(names_info)
         else:
             size = 1
         header = header + ';ee=%.2f;size=%d;'%(expected_errors, size)
-    if args.only_contig:
-        if args.output_format == 'fastq':
-            contig_output.write('@%s\n%s\n+\n%s\n'%(header, sequence, ''.join([chr(qual + args.fastq_offset) for qual in quals])))
-        else:
-            contig_output.write('%s\n%s\n'%(header, sequence))
-            qual_output.write('%s\n%s\n'%(header, ' '.join(map(str, quals))))
-        if args.collapse and args.pipeline == 'mothur':
-            names_output.write('%s\t%s\n'%(header.lstrip('>'), ','.join(names_info)))
-        return 0, 0
 
-    elif len(sequence) < args.truncate:
+
+    if args.paired:
+        contig_report_output.write('%s\t%s\t%s\t%s\t%s\n'%(header, len(names_info), overlap_length, gaps, mismatches))
+
+
+    if args.truncate and len(sequence) < args.truncate:
         if args.output_format == 'fastq':
             bad_contig_output.write('@%s\tlength below %s\n%s\n+\n%s\n'%(header, args.truncate, sequence, ''.join([chr(qual + args.fastq_offset) for qual in quals])))
         else:
-            bad_contig_output.write('%s\tlength below %s\n%s\n'%(header, args.truncate, sequence))
-            bad_qual_output.write('%s\tlength below %s\n%s\n'%(header, args.truncate, ' '.join(map(str, quals))))
+            bad_contig_output.write('>%s\tlength below %s\n%s\n'%(header, args.truncate, sequence))
+            bad_qual_output.write('>%s\tlength below %s\n%s\n'%(header, args.truncate, ' '.join(map(str, quals))))
         if args.collapse:
             if args.pipeline == 'mothur':
                 bad_names_output.write('%s\t%s\n'%(header.lstrip('>'), ','.join(names_info)))
-            return 0, len(names_info)
+            return 0, len(names_info), 0
         else:
-            return 0, 1
+            return 0, 1, 0
+
+
+    elif args.min_overlap and overlap_length < args.min_overlap:
+        if args.output_format == 'fastq':
+            bad_contig_output.write('@%s\toverlap length below %s\n%s\n+\n%s\n'%(header, args.truncate, sequence, ''.join([chr(qual + args.fastq_offset) for qual in quals])))
+        else:
+            bad_contig_output.write('>%s\toverlap length below %s\n%s\n'%(header, args.min_overlap, sequence))
+            bad_qual_output.write('>%s\toverlap length below %s\n%s\n'%(header, args.min_overlap, ' '.join(map(str, quals))))
+        if args.collapse:
+            if args.pipeline == 'mothur':
+                bad_names_output.write('%s\t%s\n'%(header.lstrip('>'), ','.join(names_info)))
+            return 0, 0, len(names_info)
+        else:
+            return 0, 0, 1
+
+    
+    elif args.only_contig:
+        if args.output_format == 'fastq':
+            contig_output.write('@%s\n%s\n+\n%s\n'%(header, sequence, ''.join([chr(qual + args.fastq_offset) for qual in quals])))
+        else:
+            contig_output.write('>%s\n%s\n'%(header, sequence))
+            qual_output.write('>%s\n%s\n'%(header, ' '.join(map(str, quals))))
+        if args.collapse and args.pipeline == 'mothur':
+            names_output.write('%s\t%s\n'%(header.lstrip('>'), ','.join(names_info)))
+        return 0, 0, 0
+
         
     elif 'N' in sequence and args.ambigs == 'disallow':
         if args.output_format == 'fastq':
             bad_contig_output.write('@%s\tcontains ambiguities\n%s\n+\n%s\n'%(header, sequence, ''.join([chr(qual + args.fastq_offset) for qual in quals])))
         else:
-            bad_contig_output.write('%s\tcontains ambiguities\n%s\n'%(header, sequence))
-            bad_qual_output.write('%s\tcontains ambiguities\n%s\n'%(header, ' '.join(map(str, quals))))
+            bad_contig_output.write('>%s\tcontains ambiguities\n%s\n'%(header, sequence))
+            bad_qual_output.write('>%s\tcontains ambiguities\n%s\n'%(header, ' '.join(map(str, quals))))
         if args.collapse:
             if args.pipeline == 'mothur':
                 bad_names_output.write('%s\t%s\n'%(header, ','.join(names_info)))
-            return len(names_info), 0
+            return len(names_info), 0, 0
         else:
-            return 1, 0
+            return 1, 0, 0
+
 
     elif args.maxerrors: #maxerrors mode.
         if expected_errors <= args.maxerrors:
@@ -832,7 +929,7 @@ def write_results(index, header, sequence, quals, expected_errors, names_info, a
                 qual_output.write('>%s\n%s\n'%(header, ' '.join(map(str, quals))))
             if args.collapse and args.pipeline == 'mothur':
                 names_output.write('%s\t%s\n'%(header, ','.join(names_info)))
-            return 0, 0
+            return 0, 0, 0
         else:
             if args.output_format == 'fastq':
                 bad_contig_output.write('@%s\terrors > %.2f\n%s\n+\n%s\n'%(header, args.maxerrors, sequence, ''.join([chr(qual + args.fastq_offset) for qual in quals])))
@@ -842,9 +939,10 @@ def write_results(index, header, sequence, quals, expected_errors, names_info, a
             if args.collapse:
                 if args.pipeline == 'mothur':
                     bad_names_output.write('%s\t%s\n'%(header.lstrip('>'), ','.join(names_info)))
-                return len(names_info), 0
+                return len(names_info), 0, 0
             else:
-                return 1, 0
+                return 1, 0, 0
+
 
     else: #uncert mode.
         if expected_errors <= len(sequence) * args.uncert:
@@ -855,7 +953,7 @@ def write_results(index, header, sequence, quals, expected_errors, names_info, a
                 qual_output.write('>%s\n%s\n'%(header, ' '.join(map(str, quals))))
             if args.collapse and args.pipeline == 'mothur':
                 names_output.write('%s\t%s\n'%(header, ','.join(names_info)))
-            return 0, 0
+            return 0, 0, 0
         else:
             if args.output_format == 'fastq':
                 bad_contig_output.write('@%s\tuncert > %.3f\n%s\n+\n%s\n'%(header, args.uncert, sequence, ''.join([chr(qual + args.fastq_offset) for qual in quals])))
@@ -865,9 +963,9 @@ def write_results(index, header, sequence, quals, expected_errors, names_info, a
             if args.collapse:
                 if args.pipeline == 'mothur':
                     bad_names_output.write('%s\t%s\n'%(header, ','.join(names_info)))
-                return len(names_info), 0
+                return len(names_info), 0, 0
             else:
-                return 1, 0
+                return 1, 0, 0
 
 
 class ReturnedNaNError(Exception):
@@ -1102,8 +1200,6 @@ def parse_fastq(forward_fastq_data, reverse_fastq_data = None, fastq_offset = 33
 
             else:
                 yield forward_header, forward_sequence, forward_quals, None, None
-            
-        
 
 
 def reverse_complement(sequence, quals = None):
@@ -1275,7 +1371,7 @@ def nw_overlap(score_matrix, pointer_matrix):
             pointer_matrix[-1][j] = 0, -1
 
 
-def make_contig(forward_aligned, forward_quals, reverse_aligned, reverse_quals, insert, deltaq, consensus_qscore, qscore_cap):
+def make_contig(forward_aligned, forward_quals, reverse_aligned, reverse_quals, insert, deltaq, consensus_qscore, qscore_cap, trim_overlap):
 
     """
     Build a contig from two aligned reads and their corresponding quality scores.
@@ -1295,7 +1391,7 @@ def make_contig(forward_aligned, forward_quals, reverse_aligned, reverse_quals, 
         return 10 ** (qual / (-10.0))
 
     def prob2qual(prob):
-        return -10 * math.log10(prob)
+        return int(math.floor(-10 * math.log10(prob)))
 
     ###Check parameters:
     forward_aligned = str(forward_aligned)
@@ -1341,52 +1437,59 @@ def make_contig(forward_aligned, forward_quals, reverse_aligned, reverse_quals, 
     #Determine the start and the end of both sequences.
     for index, base in enumerate(forward_aligned):
         if base != '-':
-            left_start = index
+            forward_start = index
             break
     for index, base in enumerate(reverse_aligned):
         if base != '-':
-            right_start = index
+            reverse_start = index
             break
 
     for index, base in reversed(list(enumerate(forward_aligned))):
         if base != '-':
-            left_end = index
+            forward_end = index
             break
     for index, base in reversed(list(enumerate(reverse_aligned))):
         if base != '-':
-            right_end = index
+            reverse_end = index
             break
 
     #Determine the overlapping region. Will trust the alignment and consider overlap starts at the first non-gap character.
-    if left_start > right_start:
-        overlap_start = left_start
-        overlap_end = right_end
-        seqs_reversed = True
-    else:
-        overlap_start = right_start
-        overlap_end = left_end
+    if forward_start < reverse_start:
+        overlap_start = reverse_start
+        overlap_end = forward_end
         seqs_reversed = False
+    else:
+        overlap_start = forward_start
+        overlap_end = reverse_end
+        seqs_reversed = True
+
+    overlap_length = overlap_end - overlap_start
     
     contig = []
     contig_quals = []
+    mismatches = 0
+    gaps = 0
 
     for position in range(len(forward_aligned)):
         if position < overlap_start:
-            if seqs_reversed:
-                contig.append(reverse_aligned[position])
-                contig_quals.append(reverse_quals_aligned[position])
-            else:
-                contig.append(forward_aligned[position])
-                contig_quals.append(forward_quals_aligned[position])
+            if not trim_overlap:
+                if seqs_reversed:
+                    contig.append(reverse_aligned[position])
+                    contig_quals.append(reverse_quals_aligned[position])
+                else:
+                    contig.append(forward_aligned[position])
+                    contig_quals.append(forward_quals_aligned[position])
         elif position > overlap_end:
-            if seqs_reversed:
-                contig.append(forward_aligned[position])
-                contig_quals.append(forward_quals_aligned[position])
-            else:
-                contig.append(reverse_aligned[position])
-                contig_quals.append(reverse_quals_aligned[position])
+            if not trim_overlap:
+                if seqs_reversed:
+                    contig.append(forward_aligned[position])
+                    contig_quals.append(forward_quals_aligned[position])
+                else:
+                    contig.append(reverse_aligned[position])
+                    contig_quals.append(reverse_quals_aligned[position])
         else:
             if forward_aligned[position] == '-':
+                gaps += 1
                 if consensus_qscore == 'posterior':
                     contig.append('N')
                     contig_quals.append(2)
@@ -1397,6 +1500,7 @@ def make_contig(forward_aligned, forward_quals, reverse_aligned, reverse_quals, 
                     pass
 
             elif reverse_aligned[position] == '-':
+                gaps += 1
                 if consensus_qscore == 'posterior':
                     contig.append('N')
                     contig_quals.append(2)
@@ -1413,13 +1517,14 @@ def make_contig(forward_aligned, forward_quals, reverse_aligned, reverse_quals, 
                 elif consensus_qscore == 'posterior':
                     p1, p2 = qual2prob(forward_quals_aligned[position]), qual2prob(reverse_quals_aligned[position])
                     post_prob = (p1 * p2 / 3) / (1 - p1 - p2 + (4 * p1 * p2 / 3))
-                    contig_quals.append(math.floor(prob2qual(post_prob)))
+                    contig_quals.append(prob2qual(post_prob))
                 elif forward_quals_aligned[position] >= reverse_quals_aligned[position]:
                     contig_quals.append(forward_quals_aligned[position])
                 else:
                     contig_quals.append(reverse_quals_aligned[position])
 
             else:
+                mismatches += 1
                 if consensus_qscore in ('best', 'sum'):
                     if abs(forward_quals_aligned[position] - reverse_quals_aligned[position]) < deltaq:
                         contig.append('N')
@@ -1443,12 +1548,12 @@ def make_contig(forward_aligned, forward_quals, reverse_aligned, reverse_quals, 
                             p2, p1 = qual2prob(forward_quals_aligned[position]), qual2prob(reverse_quals_aligned[position])
                             contig.append(reverse_aligned[position])
                         post_prob = p1 * (1 - p2 / 3) / (p1 + p2 - (4 * p1 * p2 / 3))
-                        contig_quals.append(math.floor(prob2qual(post_prob)))
+                        contig_quals.append(prob2qual(post_prob))
                         
     if qscore_cap:
         contig_quals = [qual if qual < qscore_cap else qscore_cap for qual in contig_quals]
     
-    return ''.join(contig), contig_quals
+    return ''.join(contig), contig_quals, overlap_length, gaps, mismatches
 
 
 def calculate_errors_PB(sequence, quals, alpha):

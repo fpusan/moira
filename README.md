@@ -4,11 +4,11 @@ moira
 Quality-filter raw sequence reads using the Poisson binomial filtering algorithm.
 The moira.py script and the Poisson binomial filtering algorithm are now described in the following paper:
 
-    Puente-Sánchez, F., Aguirre, J., & Parro, V. (2015).
+    Puente-Sánchez, F., Aguirre, J., & Parro, V. (2016).
     A novel conceptual approach to read-filtering in high-throughput amplicon sequencing studies.
-    Nucleic acids research, gkv1113.
+    Nucleic acids research, 44 (4): e40.
 
-which can be accessed online at: https://nar.oxfordjournals.org/content/early/2015/11/06/nar.gkv1113.full
+which can be accessed online at: http://nar.oxfordjournals.org/content/44/4/e40
 
 
 INSTALLATION INSTRUCTIONS:
@@ -35,7 +35,7 @@ REQUIREMENTS:
 
 - Expects that input sequences (single or paired) and qualities are in the same order.
 - Expects that sequences and qualities are stored only in one line (i.e. >header\\nsequence\\n>header2\\nsequence2).
-- OPTIONAL: Requires numpy if --qmode is set to "bootstrap".
+- Requires numpy.
 
 
 USAGE:
@@ -92,28 +92,26 @@ PARAMETERS:
      - sum: in matching bases, consensus quality score will be the sum of the qualities of both reads in that position of the alignment.
      - posterior: use Edgar & Flyvbjerg's (2015) method for calculating consensus quality scores. The insert and deltaq parameters will be ignored. Ambiguities will be introduced in gaps, or if two mismatched bases have exactly the same quality score. In that case, the reported quality score will be always 2.
    - --qscore_cap (default 40): Maximum consensus quality score to report. Higher consensus quality scores will be trimmed to the value of --qscore_cap. Setting it to 0 will remove the cap.
+   - --trim_overlap (default False): trim the contig to the overlapping region.
 
   - Quality-filtering parameters:
+
     - --collapse (default True): if True, identical sequences will be collapsed before quality control, and the one with the best quality will be used as a representative of the whole group.
     - --error_calc (default 'poisson_binomial'): algorithm used for error calculation.
       - poisson_binomial: calculate the Poisson binomial distribution (sum of bernoulli random variables).
       - poisson: approximating sum of bernoulli random variables to a poisson distribution.
       - bootstrap: numerical generation of an error distribution (deprecated).
-
     - --ambigs (default treat_as_error): handling of ambiguous positions during quality checking.
       - treat_as_error: will consider than ambiguities always result in a misread base.
       - disallow: will discard sequences with ambiguities.
       - ignore: will ignore ambiguities.
-
-    - --round: Round down the predicted errors to the nearest integer prior to filtering.
-
-    - --uncert (default 0.01): Maximum divergence of the observed sequence from the original one due to sequencing errors.
-
+    - --truncate (default None): truncate sequences to a fixed length before quality control. Discard sequences smaller than that length.
+    - --min_overlap (default None): discard contigs with less than the specified overlap length. Will be ignored if using single-end reads.
+    - --round: round down the predicted errors to the nearest integer prior to filtering.
+    - --uncert (default 0.01): maximum divergence of the observed sequence from the original one due to sequencing errors.
     - --maxerrors (no default value): Maximum errors allowed in the sequence. Will override --uncert if specified as a parameter.
-
-    - --alpha (default 0.005): Probability of underestimating the actual errors of a sequence.
-
-    - --bootstrap (default 100): Number of replicates per position used for error calculation by the bootstrap method.
+    - --alpha (default 0.005): probability of underestimating the actual errors of a sequence.
+    - --bootstrap (default 100): number of replicates per position used for error calculation by the bootstrap method.
         
   - Other:
 
