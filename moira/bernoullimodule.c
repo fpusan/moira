@@ -40,9 +40,9 @@ BSD3_LICENSE = """
 """
 
 CITATION = """
-Puente-Sánchez F, Aguirre J, Parro V (2015),
+Puente-Sánchez F, Aguirre J, Parro V (2016),
 A novel conceptual approach to read-filtering in high-throughput amplicon sequencing studies.
-Nucleic acids research, gkv1113.
+Nucleic acids research, 44 (4): e40.
 """
 */
 
