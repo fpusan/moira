@@ -864,8 +864,10 @@ def write_results(index, header, sequence, quals, expected_errors, names_info,
 
 
     if args.paired:
-        contig_report_output.write('%s\t%s\t%s\t%s\t%s\n'%(header, len(names_info), overlap_length, gaps, mismatches))
-
+        if args.collapse:
+            contig_report_output.write('%s\t%s\t%s\t%s\t%s\n'%(header, len(names_info), overlap_length, gaps, mismatches))
+        else:
+            contig_report_output.write('%s\t%s\t%s\t%s\t%s\n'%(header, 1, overlap_length, gaps, mismatches))
 
     if args.truncate and len(sequence) < args.truncate:
         if args.output_format == 'fastq':
