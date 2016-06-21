@@ -176,8 +176,8 @@ Distributed under the Modified BSD license.
 
 __author__ = 'Fernando Puente-Sánchez'
 __email__ = 'fpusan@gmail.com'
-__version__ = '1.3.0'
-__date__ = '20-Jun-2016'
+__version__ = '1.3.1'
+__date__ = '21-Jun-2016'
 __license__ = 'BSD-3'
 __copyright__ = 'Copyright 2013-2016 Fernando Puente-Sánchez'
 
@@ -482,7 +482,7 @@ def main(args):
                                                       bad_contig_output, bad_qual_output, bad_names_output, contig_report_output)
                     discarded_errors += filtering_results[0]
                     discarded_minlength += filtering_results[1]
-                    discarded_minoverlap += filtering_results[3]
+                    discarded_minoverlap += filtering_results[2]
                                    
                 processed_seqs += 1                
         ###############
