@@ -1,4 +1,4 @@
-- v1.3.1
+- v1.3.1b0
   - Fixed a bug that appeared in v1.3.0, in which chosing the --colapse False option led to an IndexError.
   - Updated citation information.
 
