@@ -1,3 +1,7 @@
+- v1.3.1
+  - Fixed a bug that appeared in v1.3.0, in which chosing the --colapse False option led to an IndexError.
+  - Updated citation information.
+
 - v1.3.0
   - Fixed a bug in which the '>' character was not added to the beginning of sequence headers when using the --only_contig option.
   - Fixed a bug in the bernoulli library that caused error calculation for very short sequences to randomly return NaNs. This bug was not passing silently, so the results obtained with the previous versions of moira can still be trusted.
