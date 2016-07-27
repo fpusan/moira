@@ -19,12 +19,12 @@ nw_align = Extension('nw_align', sources = ['moira/nw_align.c'])
 setup(
     name = 'moira',
     packages = ['moira'],
-    version = 'v1.3.1',
+    version = 'v1.3.1b',
     description = 'Quality-filter raw sequence reads using the Poisson binomial filtering algorithm',
     author = 'Fernando Puente-Sánchez',
     author_email = 'fpusan@gmail.com',
     url = 'https://github.com/fpusan/moira', # use the URL to the github repo
-    download_url = 'https://github.com/fpusan/moira/tarball/v1.3.2',
+    download_url = 'https://github.com/fpusan/moira/tarball/v1.3.1b',
     license = 'BSD-3',
     keywords = ['high-throughput sequencing', 'microbial ecology', '16S analysis', 'marker-gene',
                 'bioinformatics', 'Illumina', '454', 'IonTorrent', 'quality-filtering'],
