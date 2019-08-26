@@ -1195,7 +1195,7 @@ def parse_fastq(forward_fastq_data, reverse_fastq_data = None, fastq_offset = 33
                     raise LengthMismatchError(reverse_header, reverse_fastq_data.name)
 
                 if forward_header != reverse_header:
-                    raise NameMismatchError(forward_fastq_header, None, reverse_fastq_header, None)
+                    raise NameMismatchError(forward_header, None, reverse_header, None)
                 reverse_buffer = []
 
                 yield forward_header, forward_sequence, forward_quals, reverse_sequence, reverse_quals
